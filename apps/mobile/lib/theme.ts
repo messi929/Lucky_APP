@@ -11,5 +11,6 @@ export const FONT = {
   sansBold: "NotoSansKR_700Bold",
 } as const;
 
-/** 백엔드(Next.js API) 베이스. EAS env로 주입, 미설정 시 프로덕션 도메인 */
-export const API_BASE = process.env.EXPO_PUBLIC_API_BASE ?? "https://paljareport.com";
+/** 백엔드(Next.js API) 베이스. EAS env로 주입, 미설정 시 Vercel 프로덕션 */
+export const API_BASE =
+  process.env.EXPO_PUBLIC_API_BASE ?? "https://web-eight-olive-98.vercel.app";
