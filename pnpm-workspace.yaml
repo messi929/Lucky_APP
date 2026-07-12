@@ -1,0 +1,9 @@
+packages:
+  - "packages/*"
+  - "apps/*"
+  - "tests"
+# Expo/Metro는 flat node_modules를 기대 → hoisted 링커 (모노레포 Expo 권장)
+nodeLinker: hoisted
+allowBuilds:
+  esbuild: true
+  sharp: true

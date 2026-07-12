@@ -1,0 +1,20 @@
+{
+  "name": "@lucky/tests",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@lucky/core": "workspace:*"
+  },
+  "devDependencies": {
+    "lunar-javascript": "^1.7.7",
+    "ssaju": "^0.2.0",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  }
+}

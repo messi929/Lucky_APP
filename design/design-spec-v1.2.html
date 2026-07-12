@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>팔자 리포트 — 디자인 스펙 v1.2 (전체 화면)</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700;900&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ═══ 디자인 토큰 — packages/ui 와 1:1 매핑 ═══ */
+:root{
+  --paper:#F5F0E8; --paper-dk:#EEE7DA; --white:#FFFFFF;
+  --ink:#1A1714; --ink-70:#4A443C; --ink-40:#8D877D;
+  --vermil:#C63D2F; --gold:#B08D46; --teal:#3D6B68; --kakao:#FEE500;
+  --el-wood:#5B7B5A; --el-fire:#C63D2F; --el-earth:#B08D46; --el-metal:#8C8C88; --el-water:#3D5A73;
+  --serif:'Noto Serif KR',serif; --sans:'Noto Sans KR',sans-serif;
+  --r-card:14px; --r-tile:16px; --r-pill:100px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#221F1B;font-family:var(--sans);color:var(--ink);padding:48px 40px}
+h1.doc{color:var(--paper);font-family:var(--serif);font-weight:900;font-size:28px;margin-bottom:6px}
+p.doc{color:#9B948A;font-size:13px;margin-bottom:40px;line-height:1.7}
+section{margin-bottom:64px}
+h2.sec{color:var(--gold);font-size:13px;letter-spacing:.3em;margin-bottom:6px;font-weight:700}
+p.sec{color:#7A756D;font-size:12px;margin-bottom:20px}
+.rowwrap{display:flex;gap:28px;flex-wrap:wrap;align-items:flex-start}
+/* ═══ 폰 프레임 & 공통 컴포넌트 ═══ */
+.ph{width:390px;flex:0 0 390px}
+.ph .lbl{color:#8D877D;font-size:11px;letter-spacing:.15em;margin-bottom:8px;font-weight:500}
+.scr{width:390px;height:844px;background:var(--paper);border-radius:24px;overflow:hidden;display:flex;flex-direction:column;padding:64px 24px 40px}
+.scr.center{align-items:center;text-align:center}
+.grow{flex:1}
+.eyebrow{font-size:12px;letter-spacing:.5em;color:var(--ink-40);font-weight:500}
+.h-serif{font-family:var(--serif);font-weight:900;color:var(--ink);line-height:1.45}
+.sub{font-size:13px;color:var(--ink-70);line-height:1.6}
+.fine{font-size:10px;color:var(--ink-40);line-height:1.5}
+.stamp{background:var(--vermil);color:var(--paper);border-radius:6px;font-family:var(--serif);font-weight:900;display:flex;align-items:center;justify-content:center}
+.stamp.s36{width:36px;height:36px;font-size:18px}.stamp.s40{width:40px;height:40px;font-size:20px}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:16px 20px;border-radius:var(--r-card);font-weight:700;font-size:16px;font-family:var(--sans)}
+.btn.ink{background:var(--ink);color:var(--paper)}
+.btn.kakao{background:var(--kakao);color:var(--ink)}
+.btn.ghost{background:transparent;border:1px solid var(--ink-40);color:var(--ink-70);width:auto;padding:10px 18px;border-radius:var(--r-pill);font-size:13px;font-weight:500}
+.card{background:var(--white);border:1px solid var(--paper-dk);border-radius:var(--r-card);padding:16px;width:100%}
+.field{background:var(--white);border:1px solid var(--paper-dk);border-radius:var(--r-card);padding:14px 16px;width:100%}
+.field .fl{font-size:12px;color:var(--ink-40);letter-spacing:.05em;font-weight:500;margin-bottom:4px}
+.field .fv{font-size:17px;font-weight:700;color:var(--ink)}
+.field .fv.empty{color:var(--ink-40)}
+.chip{background:var(--paper-dk);border-radius:var(--r-pill);padding:8px 14px;font-size:13px;font-weight:500;color:var(--ink-70)}
+.dots{display:flex;gap:6px;justify-content:center}
+.dots i{width:6px;height:6px;border-radius:50%;background:var(--ink-40);opacity:.4}
+.dots i.on{background:var(--vermil);opacity:1}
+.gap2{height:2px}.gap4{height:4px}.gap6{height:6px}.gap8{height:8px}.gap10{height:10px}.gap12{height:12px}.gap14{height:14px}.gap16{height:16px}.gap20{height:20px}.gap24{height:24px}.gap28{height:28px}
+.hstack{display:flex;align-items:center;gap:10px}
+.vstack{display:flex;flex-direction:column;gap:10px;width:100%}
+.tile{background:var(--white);border:1px solid var(--paper-dk);border-radius:var(--r-card);padding:16px 14px;flex:1}
+.tile .tt{font-size:15px;font-weight:700;margin-bottom:6px}
+.tile .ts{font-size:11px;color:var(--ink-40);line-height:1.5}
+/* 클래식 모드 오버라이드 */
+.classic .h-serif{line-height:1.55}
+.classic .sub{font-size:16px;line-height:1.8}
+.classic .field .fv{font-size:20px}
+.classic .btn{padding:20px;font-size:19px;border-radius:18px}
+/* 토큰 표 */
+.tok{background:var(--white);border-radius:20px;padding:28px;width:466px}
+.tok h3{font-size:16px;font-weight:700;margin-bottom:16px}
+.sw{display:flex;gap:10px;margin-bottom:20px}
+.sw div{text-align:center;font-size:9px;color:var(--ink-70)}
+.sw i{display:block;width:52px;height:52px;border-radius:10px;border:1px solid var(--paper-dk);margin-bottom:6px}
+</style>
+</head>
+<body>
+<h1 class="doc">팔자 리포트 — 디자인 스펙 v1.2</h1>
+<p class="doc">전체 26화면 · 390×844 모바일 퍼스트 · 클로드코드 핸드오프용. CSS :root 변수가 packages/ui 디자인 토큰의 단일 소스. 규칙: 전통 요소(한지·먹·주홍 낙관)는 포인트로만 — 주홍은 화면당 1~2곳, 낙관은 종이에 하나만 찍힌다.</p>
+
+<!-- ════════ P0 토큰 ════════ -->
+<section>
+<h2 class="sec">P0 — 디자인 토큰</h2>
+<p class="sec">모든 값은 CSS 변수 = packages/ui 토큰. 헤드라인 Noto Serif KR Black / 본문 Noto Sans KR</p>
+<div class="tok">
+  <h3>팔자 리포트 — 디자인 토큰 v1.2</h3>
+  <div class="sw">
+    <div><i style="background:var(--paper)"></i>한지 #F5F0E8</div>
+    <div><i style="background:var(--paper-dk)"></i>한지딥 #EEE7DA</div>
+    <div><i style="background:var(--ink)"></i>먹 #1A1714</div>
+    <div><i style="background:var(--vermil)"></i>주홍 #C63D2F</div>
+    <div><i style="background:var(--gold)"></i>금박 #B08D46</div>
+    <div><i style="background:var(--teal)"></i>청록 #3D6B68</div>
+  </div>
+  <div class="h-serif" style="font-size:22px;margin-bottom:8px">헤드라인 — Noto Serif KR Black</div>
+  <div class="sub" style="margin-bottom:8px">본문 — Noto Sans KR Regular 14 / 행간 160%</div>
+  <div class="fine">오행: 목 #5B7B5A · 화 #C63D2F · 토 #B08D46 · 금 #8C8C88 · 수 #3D5A73<br>모드: mz(기본) / classic(18pt+·저밀도·큰 버튼) — .classic 클래스 오버라이드 참조</div>
+</div>
+</section>
+
+<!-- ════════ P0 온보딩·기본 리포트 (Figma v0.1 4장) ════════ -->
+<section>
+<h2 class="sec">P0 — 온보딩 & 기본 카드 (기존 시안 4장)</h2>
+<p class="sec">입력(성별 필드 추가됨) → 훅 → 타입 → 처방전</p>
+<div class="rowwrap">
+
+<div class="ph"><div class="lbl">ON-1 입력 — 대화체 폼</div>
+<div class="scr">
+  <div class="hstack"><span class="stamp s36">命</span><span style="font-family:var(--serif);font-weight:700;letter-spacing:.1em">팔자 리포트</span></div>
+  <div class="gap28"></div>
+  <div class="h-serif" style="font-size:32px">먼저,<br>태어난 날부터<br>들어볼까요.</div>
+  <div class="gap8"></div>
+  <div class="sub">사주는 태어난 순간의 하늘을 읽는 일이라<br>정확할수록 좋아요.</div>
+  <div class="gap24"></div>
+  <div class="vstack" style="gap:6px">
+    <div class="field"><div class="fl">생년월일</div><div class="fv">1994. 3. 15 (양력)</div></div>
+    <div class="field"><div class="fl">태어난 시간</div><div class="fv">오후 2:30 — 확실해요?</div></div>
+    <div class="hstack" style="padding:4px 2px"><span style="width:18px;height:18px;border:1.5px solid var(--ink-40);border-radius:5px"></span><span class="sub" style="font-size:13px">시간을 몰라요 — 괜찮아요, 시 없이 보는 법도 있으니</span></div>
+    <div class="hstack" style="gap:6px">
+      <div class="field" style="flex:1"><div class="fl">성별</div><div class="fv">여성</div></div>
+      <div class="field" style="flex:2"><div class="fl">태어난 지역</div><div class="fv">서울 — 경도 반영</div></div>
+    </div>
+  </div>
+  <div class="grow"></div>
+  <div class="btn ink">팔자 적으러 가기</div>
+</div></div>
+
+<div class="ph"><div class="lbl">ON-2 훅 카드 — 첫 마디 (일주 60종)</div>
+<div class="scr">
+  <div class="hstack" style="gap:8px"><span class="eyebrow" style="letter-spacing:.3em">당신의 일주</span><span style="font-family:var(--serif);font-weight:700;font-size:13px;color:var(--vermil)">갑자 甲子</span></div>
+  <div class="grow"></div>
+  <div class="h-serif" style="font-size:34px;line-height:1.5">사람들이 당신한테<br>기대죠.</div>
+  <div class="gap10"></div>
+  <div class="h-serif" style="font-size:34px;line-height:1.5;color:var(--vermil)">근데 정작 당신이<br>기댈 데는 없고.</div>
+  <div class="gap24"></div>
+  <div class="hstack"><span class="stamp s36" style="width:34px;height:34px;font-size:17px">眞</span><span class="sub" style="font-size:13px">당신의 팔자가 그렇게 말하고 있어요</span></div>
+  <div class="grow"></div>
+  <div class="dots"><i></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  <div class="gap12"></div>
+  <div class="eyebrow" style="text-align:center;letter-spacing:.3em;font-size:12px">밀어서 계속 보기</div>
+</div></div>
+
+<div class="ph"><div class="lbl">ON-3 타입 카드 — 일간 10종 IP</div>
+<div class="scr center">
+  <div class="eyebrow">나의 타입</div>
+  <div class="grow"></div>
+  <div style="width:220px;height:220px;border-radius:50%;background:var(--ink);display:flex;align-items:center;justify-content:center"><span style="font-family:var(--serif);font-weight:900;font-size:110px;color:var(--paper)">丙</span></div>
+  <div class="gap28"></div>
+  <div class="h-serif" style="font-size:30px;letter-spacing:.05em">한낮의 태양</div>
+  <div class="gap4"></div>
+  <div style="font-size:14px;font-weight:500;letter-spacing:.2em;color:var(--vermil)">병화 · 丙火</div>
+  <div class="gap20"></div>
+  <div class="hstack" style="flex-wrap:wrap;justify-content:center;gap:8px"><span class="chip">숨길 수 없는 존재감</span><span class="chip">빨리 뜨겁고 빨리 식음</span><span class="chip">그늘진 곳을 밝히는 사람</span></div>
+  <div class="grow"></div>
+  <div class="dots"><i></i><i></i><i></i><i class="on"></i><i></i><i></i><i></i><i></i></div>
+</div></div>
+
+<div class="ph"><div class="lbl">ON-4 처방전 — 공유 카드 겸용</div>
+<div class="scr">
+  <div class="hstack"><span class="stamp s36">運</span><span class="h-serif" style="font-size:22px;letter-spacing:.05em">개운 처방전</span></div>
+  <div class="gap6"></div>
+  <div class="eyebrow" style="letter-spacing:.1em">2026 하반기 · 갑자일주</div>
+  <div class="gap20"></div>
+  <div class="vstack" style="gap:6px">
+    <div class="card hstack"><span style="width:22px;height:22px;border-radius:50%;background:var(--teal)"></span><div><div class="fl" style="font-size:11px;color:var(--ink-40);letter-spacing:.15em">당신의 색</div><div style="font-weight:700">깊은 청록</div></div></div>
+    <div class="card"><div class="fl" style="font-size:11px;color:var(--ink-40);letter-spacing:.15em">좋은 방향</div><div style="font-weight:700">북동쪽 — 중요한 약속은 이쪽에서</div></div>
+    <div class="card"><div class="fl" style="font-size:11px;color:var(--ink-40);letter-spacing:.15em">조심할 달</div><div style="font-weight:700">10월 — 큰 결정은 한 템포 늦추기</div></div>
+    <div class="card"><div class="fl" style="font-size:11px;color:var(--ink-40);letter-spacing:.15em">올해의 한 가지</div><div style="font-weight:700">물 가까운 곳으로 짧은 여행</div></div>
+  </div>
+  <div class="grow"></div>
+  <div class="fine" style="letter-spacing:.1em">팔자 리포트 · paljareport.com</div>
+  <div class="gap10"></div>
+  <div class="btn kakao">카카오톡으로 공유</div>
+  <div class="gap6"></div>
+  <div class="btn ink">이미지 저장 · 스토리용 9:16</div>
+</div></div>
+</div>
+</section>
+
+<!-- ════════ P1 코어 리포트 플로우 ════════ -->
+<section>
+<h2 class="sec">P1 — 코어 리포트 플로우 (7장)</h2>
+<p class="sec">붓글씨 연출 → 원국·오행 → 반응 체크 → 고민 문답(연령 적응) → 하반기 운 → 블러 티저 → CTA 허브</p>
+<div class="rowwrap">
+
+<div class="ph"><div class="lbl">R0 팔자 연출 — 붓글씨 (2~3초 뜸, 스킵 가능)</div>
+<div class="scr center">
+  <div class="eyebrow" style="letter-spacing:.2em">당신의 팔자를 적고 있어요</div>
+  <div class="grow"></div>
+  <div style="display:flex;gap:22px">
+    <div style="text-align:center"><div class="eyebrow" style="letter-spacing:.3em;margin-bottom:10px">시</div><div style="font-family:var(--serif);font-weight:900;font-size:52px;opacity:.25">癸</div><div style="font-family:var(--serif);font-weight:900;font-size:52px;opacity:.08">未</div></div>
+    <div style="text-align:center"><div class="eyebrow" style="letter-spacing:.3em;margin-bottom:10px">일</div><div style="font-family:var(--serif);font-weight:900;font-size:52px">庚</div><div style="font-family:var(--serif);font-weight:900;font-size:52px">午</div></div>
+    <div style="text-align:center"><div class="eyebrow" style="letter-spacing:.3em;margin-bottom:10px">월</div><div style="font-family:var(--serif);font-weight:900;font-size:52px">戊</div><div style="font-family:var(--serif);font-weight:900;font-size:52px">戌</div></div>
+    <div style="text-align:center"><div class="eyebrow" style="letter-spacing:.3em;margin-bottom:10px">연</div><div style="font-family:var(--serif);font-weight:900;font-size:52px">辛</div><div style="font-family:var(--serif);font-weight:900;font-size:52px">巳</div></div>
+  </div>
+  <div class="gap28"></div>
+  <div style="font-family:var(--serif);font-size:15px;color:var(--ink-70)">한 자, 한 자.</div>
+  <div class="grow"></div>
+  <div class="btn ghost">바로 보기</div>
+</div></div>
+
+<div class="ph"><div class="lbl">R2 나의 팔자 — 원국 + 오행 (SVG 차트 자체 구현)</div>
+<div class="scr">
+  <div class="eyebrow">나의 팔자</div>
+  <div class="gap16"></div>
+  <div style="display:flex;gap:8px">
+    <div style="flex:1;text-align:center;background:var(--white);border:1px solid var(--paper-dk);border-radius:12px;padding:14px 0"><div class="fine" style="letter-spacing:.1em;margin-bottom:6px">시</div><div style="font-family:var(--serif);font-weight:900;font-size:30px">癸</div><div style="font-family:var(--serif);font-weight:900;font-size:30px">未</div><div class="fine" style="margin-top:6px;font-size:11px;color:var(--ink-70)">계미</div></div>
+    <div style="flex:1;text-align:center;background:var(--ink);border-radius:12px;padding:14px 0"><div class="fine" style="letter-spacing:.1em;margin-bottom:6px;color:var(--paper)">일</div><div style="font-family:var(--serif);font-weight:900;font-size:30px;color:var(--paper)">庚</div><div style="font-family:var(--serif);font-weight:900;font-size:30px;color:var(--paper)">午</div><div class="fine" style="margin-top:6px;font-size:11px;color:var(--paper)">경오</div></div>
+    <div style="flex:1;text-align:center;background:var(--white);border:1px solid var(--paper-dk);border-radius:12px;padding:14px 0"><div class="fine" style="letter-spacing:.1em;margin-bottom:6px">월</div><div style="font-family:var(--serif);font-weight:900;font-size:30px">戊</div><div style="font-family:var(--serif);font-weight:900;font-size:30px">戌</div><div class="fine" style="margin-top:6px;font-size:11px;color:var(--ink-70)">무술</div></div>
+    <div style="flex:1;text-align:center;background:var(--white);border:1px solid var(--paper-dk);border-radius:12px;padding:14px 0"><div class="fine" style="letter-spacing:.1em;margin-bottom:6px">연</div><div style="font-family:var(--serif);font-weight:900;font-size:30px">辛</div><div style="font-family:var(--serif);font-weight:900;font-size:30px">巳</div><div class="fine" style="margin-top:6px;font-size:11px;color:var(--ink-70)">신사</div></div>
+  </div>
+  <div class="gap6"></div>
+  <div class="fine" style="font-size:12px">일주가 당신의 본체 — 경오, 한낮 들판의 쇠</div>
+  <div class="gap24"></div>
+  <div style="font-weight:700;font-size:15px">오행의 균형</div>
+  <div class="gap10"></div>
+  <div class="vstack" style="gap:10px">
+    <div class="hstack"><span style="width:48px;font-size:13px;font-weight:500;color:var(--ink-70)">木 목</span><span style="width:220px;height:10px;border-radius:5px;background:var(--paper-dk);position:relative"><span style="position:absolute;left:0;top:0;height:10px;width:55px;border-radius:5px;background:var(--el-wood)"></span></span><b style="font-size:13px">1</b></div>
+    <div class="hstack"><span style="width:48px;font-size:13px;font-weight:500;color:var(--ink-70)">火 화</span><span style="width:220px;height:10px;border-radius:5px;background:var(--paper-dk);position:relative"><span style="position:absolute;left:0;top:0;height:10px;width:110px;border-radius:5px;background:var(--el-fire)"></span></span><b style="font-size:13px">2</b></div>
+    <div class="hstack"><span style="width:48px;font-size:13px;font-weight:500;color:var(--ink-70)">土 토</span><span style="width:220px;height:10px;border-radius:5px;background:var(--paper-dk);position:relative"><span style="position:absolute;left:0;top:0;height:10px;width:165px;border-radius:5px;background:var(--el-earth)"></span></span><b style="font-size:13px">3</b></div>
+    <div class="hstack"><span style="width:48px;font-size:13px;font-weight:500;color:var(--ink-70)">金 금</span><span style="width:220px;height:10px;border-radius:5px;background:var(--paper-dk);position:relative"><span style="position:absolute;left:0;top:0;height:10px;width:110px;border-radius:5px;background:var(--el-metal)"></span></span><b style="font-size:13px">2</b></div>
+    <div class="hstack"><span style="width:48px;font-size:13px;font-weight:500;color:var(--ink-70)">水 수</span><span style="width:220px;height:10px;border-radius:5px;background:var(--paper-dk);position:relative"><span style="position:absolute;left:0;top:0;height:10px;width:4px;border-radius:5px;background:var(--el-water);opacity:.25"></span></span><b style="font-size:13px">0</b></div>
+  </div>
+  <div class="gap14"></div>
+  <div class="card"><div style="font-weight:700;font-size:14px;margin-bottom:6px">물(水)이 비어 있어요</div><div class="sub" style="font-size:13px">쉼과 유연함이 부족해지기 쉬운 구조. 처방전에서 채우는 법을 알려드릴게요.</div></div>
+  <div class="grow"></div>
+  <div class="dots"><i></i><i></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i></div>
+</div></div>
+
+<div class="ph"><div class="lbl">R-반응 체크 — 원탭 → 후반 화법 분기</div>
+<div class="scr center">
+  <div class="grow"></div>
+  <span class="stamp s40">問</span>
+  <div class="gap20"></div>
+  <div class="h-serif" style="font-size:28px">여기까지,<br>어때요. 좀 맞나요?</div>
+  <div class="gap28"></div>
+  <div class="vstack">
+    <div class="btn ink" style="justify-content:center">소름 돋았어요 😳</div>
+    <div class="btn" style="background:var(--white);border:1px solid var(--paper-dk)">반 정도는요</div>
+    <div class="btn" style="background:var(--white);border:1px solid var(--paper-dk)">글쎄요, 잘 모르겠는데</div>
+  </div>
+  <div class="gap14"></div>
+  <div class="fine" style="font-size:12px">어느 쪽이든 좋아요 — 다음 이야기가 달라질 뿐</div>
+  <div class="grow"></div>
+</div></div>
+
+<div class="ph"><div class="lbl">R-고민 문답 — 연령 적응 노출 (28세 예시)</div>
+<div class="scr">
+  <span class="stamp s36">答</span>
+  <div class="gap16"></div>
+  <div class="h-serif" style="font-size:28px">그래서, 요즘<br>뭐가 제일 답답해요?</div>
+  <div class="gap8"></div>
+  <div class="sub">하나만 골라주세요. 뒤 이야기가 그쪽으로 갑니다.</div>
+  <div class="gap20"></div>
+  <div class="hstack" style="gap:10px;align-items:stretch">
+    <div class="tile"><div class="tt">이직·일</div><div class="ts">지금 자리, 계속 가도 되나</div></div>
+    <div class="tile"><div class="tt">연애·인연</div><div class="ts">이 사람인가, 언제쯤인가</div></div>
+  </div>
+  <div class="gap10"></div>
+  <div class="hstack" style="gap:10px;align-items:stretch">
+    <div class="tile"><div class="tt">돈·목돈</div><div class="ts">모이는 시기가 있긴 한가</div></div>
+    <div class="tile"><div class="tt">인간관계</div><div class="ts">자꾸 부딪히는 그 사람</div></div>
+  </div>
+  <div class="gap14"></div>
+  <div style="font-size:13px;font-weight:500;color:var(--vermil)">다른 고민 보기 — 자녀·택일·건강한 한 해 …</div>
+  <div class="grow"></div>
+  <div class="fine">* 연령대에 따라 기본 노출이 달라집니다 (55세: 자녀 / 사업·은퇴 / 이사·매매 / 건강한 한 해) — concerns.ts ageWeights</div>
+</div></div>
+
+<div class="ph"><div class="lbl">R5 하반기 운 — 선택 관심사 반영</div>
+<div class="scr">
+  <div class="eyebrow" style="letter-spacing:.2em">2026 하반기 · 이직·일 중심</div>
+  <div class="gap20"></div>
+  <div class="h-serif" style="font-size:30px">움직일 판은<br>깔리는데,<br>서두르면 엎어져요.</div>
+  <div class="gap24"></div>
+  <div class="vstack">
+    <div class="card hstack" style="gap:12px"><span style="width:38px;font-family:var(--serif);font-weight:900;color:var(--vermil)">9월</span><span style="font-weight:500;font-size:14px">제안이 오는 달 — 듣기만 하세요</span></div>
+    <div class="card hstack" style="gap:12px"><span style="width:38px;font-family:var(--serif);font-weight:900;color:var(--vermil)">10월</span><span style="font-weight:500;font-size:14px">큰 결정은 한 템포 늦추기</span></div>
+    <div class="card hstack" style="gap:12px"><span style="width:38px;font-family:var(--serif);font-weight:900;color:var(--vermil)">12월</span><span style="font-weight:500;font-size:14px">도장 찍기 좋은 흐름</span></div>
+  </div>
+  <div class="grow"></div>
+  <div class="dots"><i></i><i></i><i></i><i></i><i></i><i class="on"></i><i></i><i></i></div>
+</div></div>
+
+<div class="ph"><div class="lbl">R6 조심할 것 — 티저·블러 (유료 훅)</div>
+<div class="scr">
+  <div class="eyebrow">조심할 것</div>
+  <div class="gap20"></div>
+  <div class="card" style="padding:18px 16px"><div style="font-size:12px;font-weight:500;letter-spacing:.1em;color:var(--vermil);margin-bottom:8px">하나는 그냥 알려드릴게요</div><div style="font-family:var(--serif);font-weight:700;font-size:19px;line-height:1.5">10월, 문서에 약해요.<br>계약·이직 서류는 두 번 읽으세요.</div></div>
+  <div class="gap10"></div>
+  <div class="card" style="padding:18px 16px"><span style="display:block;width:220px;height:12px;border-radius:6px;background:rgba(141,135,125,.16);margin-bottom:8px"></span><span style="display:block;width:280px;height:12px;border-radius:6px;background:rgba(141,135,125,.13);margin-bottom:8px"></span><span style="display:block;width:180px;height:12px;border-radius:6px;background:rgba(141,135,125,.09)"></span></div>
+  <div class="gap6"></div>
+  <div class="card" style="padding:18px 16px"><span style="display:block;width:240px;height:12px;border-radius:6px;background:rgba(141,135,125,.16);margin-bottom:8px"></span><span style="display:block;width:200px;height:12px;border-radius:6px;background:rgba(141,135,125,.11)"></span></div>
+  <div class="gap6"></div>
+  <div class="card" style="padding:18px 16px"><span style="display:block;width:260px;height:12px;border-radius:6px;background:rgba(141,135,125,.15);margin-bottom:8px"></span><span style="display:block;width:150px;height:12px;border-radius:6px;background:rgba(141,135,125,.1)"></span></div>
+  <div class="grow"></div>
+  <div class="sub" style="text-align:center;font-size:13px">나머지 셋 + 월별 캘린더는 복채를 내면 열립니다</div>
+  <div class="gap10"></div>
+  <div class="btn ink">복채 내고 마저 보기 · 3,900원</div>
+</div></div>
+
+<div class="ph"><div class="lbl">R8 CTA 허브 — 전환 분기점</div>
+<div class="scr">
+  <span class="stamp s36">緣</span>
+  <div class="gap16"></div>
+  <div class="h-serif" style="font-size:28px">여기서부터는<br>당신이 고를 차례</div>
+  <div class="grow"></div>
+  <div class="vstack">
+    <div style="background:var(--ink);border-radius:var(--r-tile);padding:18px"><div style="font-weight:700;font-size:16px;color:var(--paper);margin-bottom:4px">복채 내고 하나 묻기</div><div style="font-size:12px;color:#CCC5BB">궁금한 것 하나, 팔자로 답해드려요</div></div>
+    <div class="card" style="border-radius:var(--r-tile);padding:18px"><div style="font-weight:700;font-size:16px;margin-bottom:4px">궁합 · 가족 보기</div><div class="fine" style="font-size:12px">그 사람과 나, 부모님과 나</div></div>
+    <div class="card" style="border-radius:var(--r-tile);padding:18px"><div style="font-weight:700;font-size:16px;margin-bottom:4px">선물하기</div><div class="fine" style="font-size:12px">생일인 그 사람에게 사주 리포트를</div></div>
+    <div class="card" style="border-radius:var(--r-tile);padding:18px"><div style="font-weight:700;font-size:16px;margin-bottom:4px">매일 아침, 오늘의 한 줄</div><div class="fine" style="font-size:12px">앱에서 푸시로 받아보기</div></div>
+  </div>
+  <div class="gap16"></div>
+  <div class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="on"></i></div>
+</div></div>
+</div>
+</section>
+
+<!-- ════════ P2 결제·SKU ════════ -->
+<section>
+<h2 class="sec">P2 — 결제 · SKU (4장)</h2>
+<p class="sec">복채 시트(청약철회 동의 = 법률 필수) → 하나 묻기 → 자녀운 입력 → 택일 결과</p>
+<div class="rowwrap">
+
+<div class="ph"><div class="lbl">PAY-1 복채 시트 — SKU + 청약철회 동의(필수)</div>
+<div class="scr">
+  <div class="h-serif" style="font-size:24px">복채</div>
+  <div class="sub" style="font-size:13px">궁금한 만큼만 내세요</div>
+  <div class="gap16"></div>
+  <div class="vstack" style="gap:6px">
+    <div style="background:var(--ink);border-radius:var(--r-tile);padding:16px;display:flex;align-items:center;gap:10px"><div style="flex:1"><div style="font-weight:700;font-size:15px;color:var(--paper)">풀 리포트 + 하나 묻기</div><div style="font-size:11px;color:#CCC5BB">월별 캘린더 · 재물/연애/일 · 질문 1개</div></div><div style="font-family:var(--serif);font-weight:900;color:var(--paper)">3,900원</div></div>
+    <div class="card" style="border-radius:var(--r-tile);display:flex;align-items:center;gap:10px"><div style="flex:1"><div style="font-weight:700;font-size:15px">궁합 상세</div><div class="fine" style="font-size:11px">관계 다이내믹 + 시기 조언</div></div><div style="font-family:var(--serif);font-weight:900;color:var(--vermil)">2,900원</div></div>
+    <div class="card" style="border-radius:var(--r-tile);display:flex;align-items:center;gap:10px"><div style="flex:1"><div style="font-weight:700;font-size:15px">택일 리포트</div><div class="fine" style="font-size:11px">이사·개업·계약 좋은 날 3일</div></div><div style="font-family:var(--serif);font-weight:900;color:var(--vermil)">6,900원</div></div>
+    <div class="card" style="border-radius:var(--r-tile);display:flex;align-items:center;gap:10px"><div style="flex:1"><div style="font-weight:700;font-size:15px">자녀운 리포트</div><div class="fine" style="font-size:11px">수능 · 취업 · 혼사</div></div><div style="font-family:var(--serif);font-weight:900;color:var(--vermil)">9,900원~</div></div>
+  </div>
+  <div class="grow"></div>
+  <div style="background:var(--white);border:1px solid var(--vermil);border-radius:12px;padding:12px 14px;display:flex;gap:10px;align-items:flex-start"><span style="min-width:20px;height:20px;border-radius:6px;background:var(--vermil);color:var(--paper);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center">✓</span><span class="fine" style="font-size:11px;color:var(--ink-70)">디지털 콘텐츠 특성상 열람 후에는 청약철회가 제한됨을 확인했어요 <b>(전자상거래법 — 결제 전 명시적 동의 필수 구현)</b></span></div>
+  <div class="gap8"></div>
+  <div class="btn ink">복채 내기 · 3,900원</div>
+  <div class="gap6"></div>
+  <div class="fine" style="text-align:center">토스페이먼츠 안전결제 · 사업자정보 · 이용약관</div>
+</div></div>
+
+<div class="ph"><div class="lbl">PAY-2 하나 묻기 — 자유 입력 (연령별 플레이스홀더)</div>
+<div class="scr">
+  <span class="stamp s36">問</span>
+  <div class="gap16"></div>
+  <div class="h-serif" style="font-size:30px">자, 하나만<br>물어보세요.</div>
+  <div class="gap8"></div>
+  <div class="sub">당신의 팔자와 대운을 놓고 답해드립니다.</div>
+  <div class="gap20"></div>
+  <div class="card" style="height:180px;padding:18px"><div class="sub" style="font-size:15px;color:var(--ink-40);line-height:1.7">연말에 이직 제안이 올 것 같은데,<br>받아도 되는 흐름인가요?</div></div>
+  <div class="gap8"></div>
+  <div class="fine">* 55세 플레이스홀더 예시: "아들 결혼이 자꾸 늦어지는데, 시기가 있나요?"</div>
+  <div class="grow"></div>
+  <div class="btn ink">팔자에게 묻기</div>
+</div></div>
+
+<div class="ph"><div class="lbl">PAY-3 자녀운 — 자녀 정보 입력 (가족 루프 연결)</div>
+<div class="scr">
+  <div class="h-serif" style="font-size:24px">자녀운 리포트</div>
+  <div class="sub" style="font-size:13px">아이의 팔자로 봐드립니다 — 부모님 것과 함께</div>
+  <div class="gap20"></div>
+  <div class="hstack" style="gap:8px">
+    <span class="chip" style="background:var(--ink);color:var(--paper);font-weight:700">수능운</span><span class="chip" style="background:var(--white);border:1px solid var(--paper-dk)">취업운</span><span class="chip" style="background:var(--white);border:1px solid var(--paper-dk)">혼사운</span>
+  </div>
+  <div class="gap16"></div>
+  <div class="vstack" style="gap:6px">
+    <div class="field"><div class="fl">자녀 생년월일</div><div class="fv">2008. 1. 22 (양력)</div></div>
+    <div class="field"><div class="fl">태어난 시간</div><div class="fv">오전 6:40</div></div>
+    <div class="field"><div class="fl">시험</div><div class="fv">2026 수능 · 11월 19일</div></div>
+  </div>
+  <div class="gap14"></div>
+  <div class="card"><div style="font-weight:700;font-size:13px;color:var(--vermil);margin-bottom:4px">불안을 팔지 않습니다</div><div class="sub" style="font-size:12px">아이를 겁주는 말 대신, 힘이 되는 시기와 페이스를 알려드려요. (가드레일 L3)</div></div>
+  <div class="grow"></div>
+  <div class="btn ink">자녀운 보기 · 9,900원</div>
+</div></div>
+
+<div class="ph"><div class="lbl">PAY-4 택일 결과 — taekil.ts (원가 0)</div>
+<div class="scr">
+  <div class="h-serif" style="font-size:24px">이사 택일</div>
+  <div class="eyebrow" style="letter-spacing:.1em">8월 중 · 당신의 일간(庚) 기준</div>
+  <div class="gap20"></div>
+  <div style="font-weight:700;font-size:14px;color:var(--vermil);letter-spacing:.1em">좋은 날</div>
+  <div class="gap8"></div>
+  <div class="vstack" style="gap:6px">
+    <div class="card hstack" style="gap:12px;align-items:flex-start"><span style="min-width:96px;font-family:var(--serif);font-weight:900;font-size:15px">8월 14일 (금)</span><span class="fine" style="font-size:12px;color:var(--ink-70)">천을귀인 드는 날 — 계약·이동 모두 순함</span></div>
+    <div class="card hstack" style="gap:12px;align-items:flex-start"><span style="min-width:96px;font-family:var(--serif);font-weight:900;font-size:15px">8월 22일 (토)</span><span class="fine" style="font-size:12px;color:var(--ink-70)">일진이 합을 이룸 — 가족 이동에 특히</span></div>
+    <div class="card hstack" style="gap:12px;align-items:flex-start"><span style="min-width:96px;font-family:var(--serif);font-weight:900;font-size:15px">8월 27일 (목)</span><span class="fine" style="font-size:12px;color:var(--ink-70)">금전 문서에 밝은 날</span></div>
+  </div>
+  <div class="gap14"></div>
+  <div style="font-weight:700;font-size:14px;color:var(--ink-40);letter-spacing:.1em">피할 날</div>
+  <div class="gap8"></div>
+  <div style="background:var(--paper-dk);border-radius:var(--r-card);padding:14px 16px" class="hstack"><b style="font-size:14px;color:var(--ink-70)">8월 9일 · 8월 18일</b><span class="fine" style="font-size:12px">— 충이 드는 날, 굳이 고를 필요 없어요</span></div>
+  <div class="grow"></div>
+  <div class="fine">* 택일은 참고용 흐름 안내이며, 최종 결정은 상황을 살펴 정하세요. (가드레일 L2 관망 언어)</div>
+  <div class="gap8"></div>
+  <div class="btn ink">캘린더에 저장</div>
+</div></div>
+</div>
+</section>
+
+<!-- ════════ P3 궁합·가족·선물 ════════ -->
+<section>
+<h2 class="sec">P3 — 궁합 · 가족 · 선물 (4장)</h2>
+<p class="sec">관계 선택 → 수신자 랜딩(무조건 웹, 설치 요구 금지) → 궁합 결과(나쁜 결과 없음) → 선물 수신</p>
+<div class="rowwrap">
+
+<div class="ph"><div class="lbl">REL-1 관계 선택 — 가족 유형 포함</div>
+<div class="scr">
+  <div class="h-serif" style="font-size:28px">누구와의<br>사이가 궁금해요?</div>
+  <div class="gap20"></div>
+  <div class="hstack" style="gap:10px;align-items:stretch">
+    <div class="tile" style="text-align:center"><div style="font-size:24px;margin-bottom:8px">💞</div><div style="font-weight:700;font-size:14px">연인</div></div>
+    <div class="tile" style="text-align:center"><div style="font-size:24px;margin-bottom:8px">🌙</div><div style="font-weight:700;font-size:14px">썸</div></div>
+    <div class="tile" style="text-align:center"><div style="font-size:24px;margin-bottom:8px">🤝</div><div style="font-weight:700;font-size:14px">친구</div></div>
+  </div>
+  <div class="gap10"></div>
+  <div class="hstack" style="gap:10px;align-items:stretch">
+    <div class="tile" style="text-align:center"><div style="font-size:24px;margin-bottom:8px">🏢</div><div style="font-weight:700;font-size:14px">직장</div></div>
+    <div class="tile" style="text-align:center"><div style="font-size:24px;margin-bottom:8px">👪</div><div style="font-weight:700;font-size:14px">부모–자녀</div></div>
+    <div class="tile" style="text-align:center"><div style="font-size:24px;margin-bottom:8px">🏠</div><div style="font-weight:700;font-size:14px">부부</div></div>
+  </div>
+  <div class="gap16"></div>
+  <div class="fine" style="font-size:12px">명절엔 가족 궁합 — 밥상 이야깃거리로 최고예요</div>
+  <div class="grow"></div>
+  <div class="btn ink">초대 링크 만들기</div>
+</div></div>
+
+<div class="ph"><div class="lbl">REL-2 수신자 랜딩 (웹) — K-factor 보호 구간</div>
+<div class="scr center">
+  <div class="grow"></div>
+  <div style="width:120px;height:120px;border-radius:50%;background:var(--ink);display:flex;align-items:center;justify-content:center"><span style="font-family:var(--serif);font-weight:900;font-size:60px;color:var(--paper)">丙</span></div>
+  <div class="gap20"></div>
+  <div class="h-serif" style="font-size:24px">지현님(한낮의 태양)이<br>궁합을 요청했어요</div>
+  <div class="gap8"></div>
+  <div class="sub" style="font-size:13px">생년월일만 넣으면 두 사람의 합을 보여드려요.<br>앱 설치 없이 바로.</div>
+  <div class="gap24"></div>
+  <div class="field" style="text-align:left"><div class="fl">나의 생년월일</div><div class="fv">1996. 7. 2 (양력)</div></div>
+  <div class="gap10"></div>
+  <div class="btn ink">우리 궁합 보기</div>
+  <div class="grow"></div>
+  <div style="font-size:12px;font-weight:500;color:var(--vermil)">내 팔자 전체가 궁금하다면 → 내 리포트 만들기</div>
+</div></div>
+
+<div class="ph"><div class="lbl">REL-3 궁합 결과 — 등급 4종, 부정 프레임 금지</div>
+<div class="scr center">
+  <div class="eyebrow">두 사람의 합</div>
+  <div class="gap20"></div>
+  <div style="display:flex">
+    <div style="width:110px;height:110px;border-radius:50%;background:var(--ink);border:4px solid var(--paper);display:flex;align-items:center;justify-content:center;z-index:1"><span style="font-family:var(--serif);font-weight:900;font-size:52px;color:var(--paper)">丙</span></div>
+    <div style="width:110px;height:110px;border-radius:50%;background:var(--vermil);border:4px solid var(--paper);display:flex;align-items:center;justify-content:center;margin-left:-14px"><span style="font-family:var(--serif);font-weight:900;font-size:52px;color:var(--paper)">壬</span></div>
+  </div>
+  <div class="gap24"></div>
+  <div class="h-serif" style="font-size:34px;color:var(--vermil)">불꽃형</div>
+  <div style="font-family:var(--serif);font-weight:700;font-size:17px">싸우면서 정드는 조합</div>
+  <div class="gap16"></div>
+  <div class="card" style="padding:18px;text-align:left"><div class="sub" style="font-size:14px;line-height:1.7">해와 바다 — 마주 보면 눈부시고, 등지면 서로 제일 아쉬운 사이. 속도 차이만 인정하면 오래 갑니다.</div></div>
+  <div class="grow"></div>
+  <div class="btn ink">관계 상세 보기 · 2,900원</div>
+  <div class="gap6"></div>
+  <div class="btn kakao">카카오톡으로 자랑하기</div>
+</div></div>
+
+<div class="ph"><div class="lbl">GIFT-1 선물 수신 — 언박싱 (유료 바이럴 루프)</div>
+<div class="scr center">
+  <div class="grow"></div>
+  <div style="width:180px;height:180px;border-radius:20px;background:var(--vermil);display:flex;align-items:center;justify-content:center"><span style="font-family:var(--serif);font-weight:900;font-size:84px;color:var(--paper)">福</span></div>
+  <div class="gap24"></div>
+  <div class="h-serif" style="font-size:24px">민수님이<br>사주 리포트를 선물했어요</div>
+  <div class="gap10"></div>
+  <div class="card" style="padding:14px;text-align:center"><div class="sub" style="font-size:13px">"생일 축하해. 올해 네 팔자 궁금하지 않냐"</div></div>
+  <div class="grow"></div>
+  <div class="btn ink">열어보기</div>
+  <div class="gap6"></div>
+  <div class="fine" style="font-size:11px">생년월일 입력 후 바로 열람 · 앱 설치 불필요</div>
+</div></div>
+</div>
+</section>
+
+<!-- ════════ P4 앱 전용 ════════ -->
+<section>
+<h2 class="sec">P4 — 앱 전용 (4장)</h2>
+<p class="sec">앱 홈(오늘의 한 줄) → 푸시 옵트인 → 구독 페이월(IAP) → 보관함</p>
+<div class="rowwrap">
+
+<div class="ph"><div class="lbl">APP-1 홈 — 데일리 리텐션 코어</div>
+<div class="scr">
+  <div class="hstack" style="justify-content:space-between;width:100%"><div class="hstack"><span class="stamp s36">命</span><span style="font-family:var(--serif);font-weight:700;letter-spacing:.1em">팔자</span></div><span class="fine" style="font-size:12px">7월 12일 (일) · 병오일</span></div>
+  <div class="gap20"></div>
+  <div style="background:var(--ink);border-radius:20px;padding:24px 20px;width:100%">
+    <div style="font-size:11px;letter-spacing:.3em;color:#CCC5BB;margin-bottom:12px">오늘의 한 줄</div>
+    <div style="font-family:var(--serif);font-weight:700;font-size:20px;line-height:1.55;color:var(--paper)">오늘은 말이 빨라지는 날.<br>한 박자 늦게 답해도<br>늦지 않아요.</div>
+    <div class="gap14"></div>
+    <div style="font-size:12px;color:#CCC5BB">경오일주 × 병오일 — 화기가 겹치는 날</div>
+  </div>
+  <div class="gap10"></div>
+  <div class="hstack" style="gap:10px;align-items:stretch">
+    <div class="tile"><div class="fine" style="font-size:11px;letter-spacing:.1em;margin-bottom:6px">이번 달 처방</div><div style="font-weight:700;font-size:14px">청록 · 북동 · 10월 주의</div></div>
+    <div class="tile"><div class="fine" style="font-size:11px;letter-spacing:.1em;margin-bottom:6px">궁합</div><div style="font-weight:700;font-size:14px">3명과 이어짐</div></div>
+  </div>
+  <div class="gap10"></div>
+  <div class="card" style="border-radius:var(--r-tile);padding:16px" >
+    <div class="hstack" style="justify-content:space-between"><div><div style="font-weight:700;font-size:15px">내 리포트 보관함</div><div class="fine" style="font-size:12px">풀 리포트 1 · 택일 1</div></div><span style="color:var(--ink-40)">›</span></div>
+  </div>
+  <div class="grow"></div>
+  <div class="card" style="border-radius:var(--r-tile);padding:16px;border-color:var(--gold)">
+    <div style="font-weight:700;font-size:14px;color:var(--gold);margin-bottom:4px">구독 — 매일 아침 + 문답 3회/월</div>
+    <div class="fine" style="font-size:12px">월 4,900원 · 궁합 무제한</div>
+  </div>
+</div></div>
+
+<div class="ph"><div class="lbl">APP-2 푸시 옵트인</div>
+<div class="scr center">
+  <div class="grow"></div>
+  <span class="stamp s40" style="width:64px;height:64px;font-size:32px;border-radius:14px">曉</span>
+  <div class="gap24"></div>
+  <div class="h-serif" style="font-size:26px">매일 아침 8시,<br>오늘의 한 줄을 보내드려요</div>
+  <div class="gap10"></div>
+  <div class="sub" style="font-size:14px">당신의 일주와 그날의 일진으로 짓는<br>세상에 하나뿐인 아침 문장.</div>
+  <div class="gap24"></div>
+  <div class="card" style="padding:14px;text-align:left"><div class="fine" style="font-size:11px;margin-bottom:4px">미리보기</div><div style="font-family:var(--serif);font-weight:700;font-size:14px">"오늘은 말이 빨라지는 날. 한 박자 늦게."</div></div>
+  <div class="grow"></div>
+  <div class="btn ink">아침 한 줄 받기</div>
+  <div class="gap6"></div>
+  <div class="btn ghost" style="width:100%;border:none">나중에요</div>
+</div></div>
+
+<div class="ph"><div class="lbl">APP-3 구독 페이월 (IAP · RevenueCat)</div>
+<div class="scr">
+  <div class="h-serif" style="font-size:26px">매일 보는 사주는<br>구독이 낫습니다</div>
+  <div class="gap20"></div>
+  <div class="vstack" style="gap:8px">
+    <div class="card hstack" style="gap:12px"><span class="stamp s36" style="min-width:36px">曉</span><div><div style="font-weight:700;font-size:14px">매일 아침, 오늘의 한 줄</div><div class="fine" style="font-size:12px">일주 × 일진 맞춤 푸시</div></div></div>
+    <div class="card hstack" style="gap:12px"><span class="stamp s36" style="min-width:36px">問</span><div><div style="font-weight:700;font-size:14px">문답 월 3회</div><div class="fine" style="font-size:12px">복채 없이 하나씩 물어보기</div></div></div>
+    <div class="card hstack" style="gap:12px"><span class="stamp s36" style="min-width:36px">緣</span><div><div style="font-weight:700;font-size:14px">궁합 무제한</div><div class="fine" style="font-size:12px">가족·친구·직장 전부</div></div></div>
+  </div>
+  <div class="grow"></div>
+  <div style="background:var(--ink);border-radius:var(--r-tile);padding:18px;width:100%;display:flex;justify-content:space-between;align-items:center"><div><div style="font-weight:700;font-size:16px;color:var(--paper)">월 구독</div><div style="font-size:12px;color:#CCC5BB">언제든 해지</div></div><div style="font-family:var(--serif);font-weight:900;font-size:20px;color:var(--paper)">4,900원</div></div>
+  <div class="gap8"></div>
+  <div class="btn kakao">구독 시작하기</div>
+  <div class="gap6"></div>
+  <div class="fine" style="text-align:center">스토어 결제 · 구독 관리는 스토어 설정에서</div>
+</div></div>
+
+<div class="ph"><div class="lbl">APP-4 보관함</div>
+<div class="scr">
+  <div class="h-serif" style="font-size:24px">보관함</div>
+  <div class="gap16"></div>
+  <div class="vstack" style="gap:8px">
+    <div class="card" style="border-radius:var(--r-tile)"><div class="hstack" style="justify-content:space-between"><div><div style="font-weight:700;font-size:15px">나의 풀 리포트</div><div class="fine" style="font-size:12px">2026 하반기 · 7월 2일 열람</div></div><span class="stamp s36">命</span></div></div>
+    <div class="card" style="border-radius:var(--r-tile)"><div class="hstack" style="justify-content:space-between"><div><div style="font-weight:700;font-size:15px">이사 택일 — 8월</div><div class="fine" style="font-size:12px">좋은 날 3 · 캘린더 저장됨</div></div><span class="stamp s36">吉</span></div></div>
+    <div class="card" style="border-radius:var(--r-tile)"><div class="hstack" style="justify-content:space-between"><div><div style="font-weight:700;font-size:15px">지현 × 나 — 불꽃형</div><div class="fine" style="font-size:12px">궁합 · 상세 미열람</div></div><span class="stamp s36" style="background:var(--gold)">緣</span></div></div>
+  </div>
+  <div class="gap16"></div>
+  <div style="border:1.5px dashed var(--ink-40);border-radius:var(--r-tile);padding:20px;text-align:center;width:100%"><div class="sub" style="font-size:13px">엄마 사주도 봐드릴까요?</div><div style="font-size:12px;font-weight:500;color:var(--vermil);margin-top:4px">+ 가족 리포트 추가</div></div>
+  <div class="grow"></div>
+</div></div>
+</div>
+</section>
+
+<!-- ════════ P5 클래식 모드 + 랜딩 ════════ -->
+<section>
+<h2 class="sec">P5 — 클래식 모드 변주 + 웹 랜딩 (3장)</h2>
+<p class="sec">동일 엔진·동일 카드 구조, 표면만 교체: 18pt+ · 저밀도 · [다음] 버튼 병행 · 정중한 상담체 (만 40세+ 기본, 토글 전환 가능)</p>
+<div class="rowwrap">
+
+<div class="ph"><div class="lbl">CL-1 훅 카드 — 클래식 모드 (MZ판과 비교)</div>
+<div class="scr classic">
+  <div class="hstack" style="gap:8px;justify-content:space-between;width:100%"><span style="font-family:var(--serif);font-weight:700;font-size:15px;color:var(--vermil)">갑자일주 甲子</span><span class="chip" style="font-size:12px">글씨 크게 ✓</span></div>
+  <div class="grow"></div>
+  <div class="h-serif" style="font-size:30px">주변에서 많이<br>의지하는 사주입니다.</div>
+  <div class="gap12"></div>
+  <div class="h-serif" style="font-size:30px;color:var(--vermil)">정작 본인 마음 둘 곳은<br>잘 안 보이셨을 테고요.</div>
+  <div class="gap24"></div>
+  <div class="hstack"><span class="stamp s40">眞</span><span class="sub">팔자에 그렇게 쓰여 있습니다</span></div>
+  <div class="grow"></div>
+  <div class="btn ink">다음 보기</div>
+</div></div>
+
+<div class="ph"><div class="lbl">CL-2 고민 문답 — 55세 기본 노출</div>
+<div class="scr classic">
+  <span class="stamp s40">答</span>
+  <div class="gap16"></div>
+  <div class="h-serif" style="font-size:28px">요즘 가장<br>마음 쓰이는 일이<br>무엇인가요?</div>
+  <div class="gap20"></div>
+  <div class="vstack" style="gap:10px">
+    <div class="card" style="border-radius:var(--r-tile);padding:20px"><div style="font-weight:700;font-size:18px;margin-bottom:4px">자녀</div><div class="sub" style="font-size:14px">수능 · 취업 · 혼사가 마음에 걸릴 때</div></div>
+    <div class="card" style="border-radius:var(--r-tile);padding:20px"><div style="font-weight:700;font-size:18px;margin-bottom:4px">사업 · 은퇴</div><div class="sub" style="font-size:14px">넓힐 때인지, 정리할 때인지</div></div>
+    <div class="card" style="border-radius:var(--r-tile);padding:20px"><div style="font-weight:700;font-size:18px;margin-bottom:4px">이사 · 매매</div><div class="sub" style="font-size:14px">움직이기 좋은 시기와 방위</div></div>
+    <div class="card" style="border-radius:var(--r-tile);padding:20px"><div style="font-weight:700;font-size:18px;margin-bottom:4px">건강한 한 해</div><div class="sub" style="font-size:14px">무리하지 않을 때를 알아두기</div></div>
+  </div>
+  <div class="grow"></div>
+  <div class="fine" style="font-size:12px">다른 고민 보기 — 연애 · 재물 · 인간관계 …</div>
+</div></div>
+
+<div class="ph"><div class="lbl">WEB-1 랜딩 히어로 (모바일 웹)</div>
+<div class="scr">
+  <div class="hstack"><span class="stamp s36">命</span><span style="font-family:var(--serif);font-weight:700;letter-spacing:.1em">팔자 리포트</span></div>
+  <div class="grow"></div>
+  <div style="display:flex;gap:14px;justify-content:center;width:100%">
+    <span style="font-family:var(--serif);font-weight:900;font-size:64px;opacity:.15">癸</span>
+    <span style="font-family:var(--serif);font-weight:900;font-size:64px">庚</span>
+    <span style="font-family:var(--serif);font-weight:900;font-size:64px;opacity:.4">戊</span>
+    <span style="font-family:var(--serif);font-weight:900;font-size:64px;opacity:.15">辛</span>
+  </div>
+  <div class="gap24"></div>
+  <div class="h-serif" style="font-size:32px;text-align:center">겁주지 않는 사주,<br>여덟 글자로<br>당신을 읽습니다</div>
+  <div class="gap12"></div>
+  <div class="sub" style="text-align:center">출생지 경도까지 반영한 정밀 만세력 위에,<br>철학관의 첫 마디를 얹었습니다.</div>
+  <div class="gap24"></div>
+  <div class="btn ink">30초 만에 내 팔자 보기 — 무료</div>
+  <div class="gap8"></div>
+  <div class="fine" style="text-align:center">회원가입 없음 · 이름/전화번호 안 물어봄</div>
+  <div class="grow"></div>
+  <div class="hstack" style="justify-content:center;gap:16px;width:100%"><span class="fine">이용약관</span><span class="fine">개인정보처리방침</span><span class="fine">사업자정보</span></div>
+</div></div>
+</div>
+</section>
+
+<footer style="color:#7A756D;font-size:11px;line-height:1.8;max-width:820px">
+규칙 요약 — ① 주홍(--vermil)은 화면당 1~2곳: 낙관 스탬프 또는 꺾는 문장에만. ② 카드 1장 = 뷰포트 1화면. ③ 클래식 모드는 .classic 오버라이드로만 분기(화면 중복 구현 금지). ④ 궁합·선물 수신자 화면에 앱 설치 요구 UI 금지. ⑤ 결제 화면의 청약철회 동의 체크는 법률 요건 — 제거 금지. ⑥ 모든 해석 문구는 guardrails 통과본만 사용.
+</footer>
+</body>
+</html>

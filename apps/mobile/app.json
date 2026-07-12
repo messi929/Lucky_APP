@@ -1,0 +1,29 @@
+{
+  "expo": {
+    "name": "팔자 리포트",
+    "slug": "palja-report",
+    "scheme": "palja",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.palja.report",
+      "associatedDomains": ["applinks:paljareport.com"]
+    },
+    "android": {
+      "package": "com.palja.report",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [{ "scheme": "https", "host": "paljareport.com", "pathPrefix": "/r" }],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
+    },
+    "plugins": ["expo-router", "expo-notifications"],
+    "experiments": { "typedRoutes": false }
+  }
+}
