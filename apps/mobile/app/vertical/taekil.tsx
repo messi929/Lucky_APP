@@ -1,4 +1,3 @@
-import DateTimePicker from "@react-native-community/datetimepicker";
 import type { TaekilPurpose, TaekilResult } from "@lucky/core";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
@@ -15,19 +14,27 @@ const PURPOSES: { code: TaekilPurpose; label: string }[] = [
   { code: "contract", label: "계약" },
   { code: "event", label: "행사" },
 ];
+const RANGES: { months: number; label: string }[] = [
+  { months: 1, label: "앞으로 1개월" },
+  { months: 3, label: "3개월" },
+  { months: 6, label: "6개월" },
+];
 const ymd = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const addMonths = (d: Date, m: number) => new Date(d.getFullYear(), d.getMonth() + m, d.getDate());
+const KO_DATE = (d: Date) => `${d.getMonth() + 1}월 ${d.getDate()}일`;
 
-/** PAY-4 택일 (§3, §7.4). 목적+기간 → 좋은 날/피할 날. */
+/** PAY-4 택일 (§3, §7.4). 목적+기간 → 좋은 날/피할 날. 기간은 프리셋으로. */
 export default function Taekil() {
   const insets = useSafeAreaInsets();
   const [token, setToken] = useState<string | null>(null);
   const [purpose, setPurpose] = useState<TaekilPurpose>("move");
-  const [start, setStart] = useState<Date | null>(null);
-  const [end, setEnd] = useState<Date | null>(null);
-  const [pick, setPick] = useState<"start" | "end" | null>(null);
+  const [months, setMonths] = useState(1);
   const [result, setResult] = useState<TaekilResult | null>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
+
+  const start = new Date();
+  const end = addMonths(start, months);
 
   useEffect(() => {
     loadToken().then(setToken);
@@ -35,7 +42,6 @@ export default function Taekil() {
 
   async function run() {
     if (!token) return;
-    if (!start || !end) return setErr("기간을 정해 주세요.");
     setErr("");
     setBusy(true);
     try {
@@ -49,8 +55,6 @@ export default function Taekil() {
     }
   }
 
-  const dateBox = { flex: 1, backgroundColor: color.white, borderWidth: 1, borderColor: color.hanjiDeep, borderRadius: 14, padding: 14 } as const;
-
   return (
     <ScrollView style={{ flex: 1, backgroundColor: color.hanji }} contentContainerStyle={{ padding: 24, paddingTop: insets.top + 40 }}>
       <Text style={{ fontFamily: FONT.serifBlack, fontSize: 24, color: color.ink }}>택일 · 좋은 날 찾기</Text>
@@ -62,18 +66,18 @@ export default function Taekil() {
           </Pressable>
         ))}
       </View>
-      <View style={{ height: 10 }} />
+      <View style={{ height: 16 }} />
+      <Text style={{ fontFamily: FONT.sansBold, fontSize: 14, color: color.ink, marginBottom: 8 }}>언제 안에서 찾을까요?</Text>
       <View style={{ flexDirection: "row", gap: 8 }}>
-        <Pressable style={dateBox} onPress={() => setPick("start")}><Text style={{ fontFamily: FONT.sansBold, color: start ? color.ink : color.inkMuted }}>{start ? ymd(start) : "시작일"}</Text></Pressable>
-        <Pressable style={dateBox} onPress={() => setPick("end")}><Text style={{ fontFamily: FONT.sansBold, color: end ? color.ink : color.inkMuted }}>{end ? ymd(end) : "종료일"}</Text></Pressable>
+        {RANGES.map((r) => (
+          <Pressable key={r.months} onPress={() => setMonths(r.months)} style={{ flex: 1, alignItems: "center", paddingVertical: 12, borderRadius: 14, backgroundColor: months === r.months ? color.ink : color.white, borderWidth: 1, borderColor: months === r.months ? color.ink : color.hanjiDeep }}>
+            <Text style={{ fontFamily: FONT.sansBold, fontSize: 14, color: months === r.months ? color.hanji : color.inkSoft }}>{r.label}</Text>
+          </Pressable>
+        ))}
       </View>
-      {pick && (
-        <DateTimePicker
-          value={(pick === "start" ? start : end) ?? new Date()}
-          mode="date"
-          onChange={(_e, d) => { const p = pick; setPick(null); if (d) { p === "start" ? setStart(d) : setEnd(d); } }}
-        />
-      )}
+      <Text style={{ fontFamily: FONT.sans, fontSize: 12, color: color.inkMuted, marginTop: 8 }}>
+        {KO_DATE(start)} ~ {KO_DATE(end)} 안에서 일진을 살핍니다
+      </Text>
       {!!err && <Text style={{ color: color.vermilion, marginTop: 8 }}>{err}</Text>}
       <View style={{ height: 12 }} />
       <Btn label={busy ? "일진을 살피는 중…" : "좋은 날 찾기"} variant="vermil" onPress={run} disabled={busy} />

@@ -1,128 +1,230 @@
-import DateTimePicker from "@react-native-community/datetimepicker";
 import { REGIONS, type SajuInput } from "@lucky/core";
-import { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useMemo, useRef, useState } from "react";
+import {
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import { color, FONT } from "@/lib/theme";
 import { Btn } from "./ui";
 
 const REGION_LIST = Object.values(REGIONS);
+const MIN_YEAR = 1900;
 
-/** 대화체 출생 입력 (RN, ON-1). onSubmit에 SajuInput 전달. */
+/**
+ * 출생 입력 (ON-1). 네이티브 피커 대신 숫자 직접 입력 —
+ * 생년월일 8자리 / 시각 4자리. 스크롤·휠 없이 키패드로 한 번에 끝난다.
+ */
 export function BirthForm({
   submitLabel,
   onSubmit,
   busy,
+  initial,
 }: {
   submitLabel: string;
   onSubmit: (birth: SajuInput) => void;
   busy?: boolean;
+  initial?: SajuInput;
 }) {
-  const [date, setDate] = useState<Date | null>(null);
-  const [time, setTime] = useState<Date | null>(null);
-  const [unknownTime, setUnknownTime] = useState(false);
-  const [gender, setGender] = useState<"" | "male" | "female">("");
-  const [region, setRegion] = useState<string>("");
-  const [lunar, setLunar] = useState(false);
-  const [showDate, setShowDate] = useState(false);
-  const [showTime, setShowTime] = useState(false);
+  const [ymd, setYmd] = useState(() => (initial ? initial.birthDate.replace(/-/g, "") : ""));
+  const [hm, setHm] = useState(() => (initial?.birthTime ? initial.birthTime.replace(":", "") : ""));
+  const [unknownTime, setUnknownTime] = useState(initial?.unknownTime ?? false);
+  const [lunar, setLunar] = useState(initial?.calendarType === "lunar");
+  const [gender, setGender] = useState<"" | "male" | "female">(initial?.gender ?? "");
+  const [region, setRegion] = useState<string>(initial?.birthRegion ?? "");
   const [err, setErr] = useState("");
+  const timeRef = useRef<TextInput>(null);
+
+  const dateErr = useMemo(() => validateYmd(ymd), [ymd]);
+  const timeErr = useMemo(() => (unknownTime ? "" : validateHm(hm)), [hm, unknownTime]);
+  const ready = ymd.length === 8 && !dateErr && (unknownTime || (hm.length === 4 && !timeErr));
+
+  function onYmdChange(next: string) {
+    const digits = next.replace(/\D/g, "").slice(0, 8);
+    setYmd(digits);
+    setErr("");
+    if (digits.length === 8 && !validateYmd(digits) && !unknownTime) timeRef.current?.focus();
+  }
 
   function submit() {
-    if (!date) return setErr("생년월일을 알려주세요.");
-    if (!unknownTime && !time) return setErr("시간을 모르면 '시간 몰라요'를 눌러 주세요.");
-    setErr("");
-    const y = date.getFullYear();
-    const md = `${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+    if (!ready) {
+      setErr(dateErr || timeErr || "생년월일을 8자리로 입력해 주세요.");
+      return;
+    }
     onSubmit({
-      birthDate: `${y}-${md}`,
+      birthDate: `${ymd.slice(0, 4)}-${ymd.slice(4, 6)}-${ymd.slice(6, 8)}`,
       calendarType: lunar ? "lunar" : "solar",
       unknownTime,
-      ...(unknownTime || !time
-        ? {}
-        : { birthTime: `${String(time.getHours()).padStart(2, "0")}:${String(time.getMinutes()).padStart(2, "0")}` }),
+      ...(unknownTime ? {} : { birthTime: `${hm.slice(0, 2)}:${hm.slice(2, 4)}` }),
       ...(gender ? { gender } : {}),
       ...(region ? { birthRegion: region as SajuInput["birthRegion"] } : {}),
     });
   }
 
   return (
-    <View style={{ gap: 8 }}>
-      <Pressable style={s.field} onPress={() => setShowDate(true)}>
-        <Text style={s.fl}>생년월일</Text>
-        <Text style={[s.fv, !date && s.empty]}>
-          {date ? `${date.getFullYear()}. ${date.getMonth() + 1}. ${date.getDate()}` : "선택하기"}
-        </Text>
-      </Pressable>
-      {showDate && (
-        <DateTimePicker
-          value={date ?? new Date(2000, 0, 1)}
-          mode="date"
-          onChange={(_e, d) => { setShowDate(false); if (d) setDate(d); }}
+    <View style={{ gap: 20 }}>
+      {/* 생년월일 — 8자리 */}
+      <View>
+        <View style={s.labelRow}>
+          <Text style={s.label}>생년월일</Text>
+          <View style={s.seg}>
+            {([["solar", "양력"], ["lunar", "음력"]] as const).map(([v, l]) => {
+              const on = (v === "lunar") === lunar;
+              return (
+                <Pressable key={v} onPress={() => setLunar(v === "lunar")} style={[s.segBtn, on && s.segBtnOn]}>
+                  <Text style={[s.segText, on && s.segTextOn]}>{l}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
+        <TextInput
+          value={formatYmd(ymd)}
+          onChangeText={onYmdChange}
+          keyboardType="number-pad"
+          inputMode="numeric"
+          maxLength={12}
+          placeholder="1990 . 03 . 15"
+          placeholderTextColor={color.inkMuted}
+          style={[s.bigInput, !!dateErr && ymd.length === 8 && s.inputErr]}
+          autoFocus={!initial}
         />
-      )}
-
-      <Toggle on={lunar} onToggle={() => setLunar(!lunar)} label="음력이에요" />
-
-      <Pressable style={[s.field, unknownTime && { opacity: 0.4 }]} disabled={unknownTime} onPress={() => setShowTime(true)}>
-        <Text style={s.fl}>태어난 시간 — 확실해요?</Text>
-        <Text style={[s.fv, !time && s.empty]}>
-          {time ? `${time.getHours()}시 ${time.getMinutes()}분` : "선택하기"}
-        </Text>
-      </Pressable>
-      {showTime && (
-        <DateTimePicker
-          value={time ?? new Date(2000, 0, 1, 12, 0)}
-          mode="time"
-          onChange={(_e, d) => { setShowTime(false); if (d) setTime(d); }}
-        />
-      )}
-      <Toggle on={unknownTime} onToggle={() => setUnknownTime(!unknownTime)} label="시간 몰라요 — 괜찮아요, 시 없이 보는 법도 있으니" />
-
-      <Text style={s.fl}>성별 (선택)</Text>
-      <View style={{ flexDirection: "row", gap: 8 }}>
-        {([["", "선택 안 함"], ["male", "남성"], ["female", "여성"]] as const).map(([v, label]) => (
-          <Pressable key={v} onPress={() => setGender(v)} style={[s.seg, gender === v && s.segOn]}>
-            <Text style={{ color: gender === v ? color.hanji : color.inkSoft, fontFamily: FONT.sansMedium, fontSize: 13 }}>{label}</Text>
-          </Pressable>
-        ))}
+        <Text style={s.hint}>{dateErr && ymd.length >= 4 ? dateErr : "숫자 8자리만 입력하면 돼요"}</Text>
       </View>
 
-      <Text style={[s.fl, { marginTop: 4 }]}>태어난 지역 — 경도 반영 (선택)</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, paddingVertical: 2 }}>
-        {REGION_LIST.map((r) => (
-          <Pressable key={r.code} onPress={() => setRegion(region === r.code ? "" : r.code)} style={[s.chip, region === r.code && s.chipOn]}>
-            <Text style={{ color: region === r.code ? color.hanji : color.inkSoft, fontSize: 13 }}>{r.name}</Text>
+      {/* 태어난 시각 — 4자리 */}
+      <View>
+        <View style={s.labelRow}>
+          <Text style={s.label}>태어난 시각</Text>
+          <Pressable onPress={() => setUnknownTime(!unknownTime)} style={[s.pill, unknownTime && s.pillOn]}>
+            <Text style={[s.pillText, unknownTime && s.pillTextOn]}>시간 몰라요</Text>
           </Pressable>
-        ))}
-      </ScrollView>
+        </View>
+        <TextInput
+          ref={timeRef}
+          value={formatHm(hm)}
+          onChangeText={(v) => { setHm(v.replace(/\D/g, "").slice(0, 4)); setErr(""); }}
+          keyboardType="number-pad"
+          inputMode="numeric"
+          maxLength={7}
+          placeholder="14 : 30"
+          placeholderTextColor={color.inkMuted}
+          editable={!unknownTime}
+          style={[s.bigInput, unknownTime && s.inputOff, !!timeErr && hm.length === 4 && s.inputErr]}
+        />
+        <Text style={s.hint}>
+          {unknownTime
+            ? "시(時) 없이 보는 법도 있어요 — 나머지 세 기둥으로 봅니다"
+            : timeErr && hm.length >= 2
+              ? timeErr
+              : "24시 기준 — 밤 11시 20분이면 2320"}
+        </Text>
+      </View>
 
-      {!!err && <Text style={{ color: color.vermilion, fontSize: 13 }}>{err}</Text>}
-      <View style={{ height: 8 }} />
-      <Btn label={busy ? "팔자를 적는 중…" : submitLabel} onPress={submit} disabled={busy} />
+      {/* 성별 */}
+      <View>
+        <Text style={[s.label, { marginBottom: 8 }]}>성별 <Text style={s.optional}>선택</Text></Text>
+        <View style={{ flexDirection: "row", gap: 8 }}>
+          {([["male", "남성"], ["female", "여성"], ["", "선택 안 함"]] as const).map(([v, label]) => (
+            <Pressable key={v} onPress={() => setGender(v)} style={[s.choice, gender === v && s.choiceOn]}>
+              <Text style={[s.choiceText, gender === v && s.choiceTextOn]}>{label}</Text>
+            </Pressable>
+          ))}
+        </View>
+      </View>
+
+      {/* 지역 */}
+      <View>
+        <Text style={[s.label, { marginBottom: 8 }]}>
+          태어난 지역 <Text style={s.optional}>선택 · 경도 반영</Text>
+        </Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, paddingVertical: 2 }}>
+          {REGION_LIST.map((r) => (
+            <Pressable key={r.code} onPress={() => setRegion(region === r.code ? "" : r.code)} style={[s.chip, region === r.code && s.chipOn]}>
+              <Text style={[s.chipText, region === r.code && s.chipTextOn]}>{r.name}</Text>
+            </Pressable>
+          ))}
+        </ScrollView>
+      </View>
+
+      {!!err && <Text style={s.err}>{err}</Text>}
+      <Btn label={busy ? "팔자를 적는 중…" : submitLabel} onPress={submit} disabled={busy || !ready} />
     </View>
   );
 }
 
-function Toggle({ on, onToggle, label }: { on: boolean; onToggle: () => void; label: string }) {
-  return (
-    <Pressable style={s.toggleRow} onPress={onToggle}>
-      <View style={[s.checkbox, on && s.checkboxOn]}>{on && <Text style={{ color: color.hanji, fontSize: 12 }}>✓</Text>}</View>
-      <Text style={s.toggleLabel}>{label}</Text>
-    </Pressable>
-  );
+function formatYmd(d: string): string {
+  if (!d) return "";
+  const parts = [d.slice(0, 4), d.slice(4, 6), d.slice(6, 8)].filter(Boolean);
+  return parts.join(" . ");
+}
+function formatHm(d: string): string {
+  if (!d) return "";
+  const parts = [d.slice(0, 2), d.slice(2, 4)].filter(Boolean);
+  return parts.join(" : ");
+}
+
+function validateYmd(d: string): string {
+  if (d.length < 8) return "";
+  const y = Number(d.slice(0, 4));
+  const m = Number(d.slice(4, 6));
+  const day = Number(d.slice(6, 8));
+  const now = new Date();
+  if (y < MIN_YEAR || y > now.getFullYear()) return `${MIN_YEAR}년 ~ ${now.getFullYear()}년 사이로 입력해 주세요.`;
+  if (m < 1 || m > 12) return "월은 01~12로 입력해 주세요.";
+  const last = new Date(y, m, 0).getDate();
+  if (day < 1 || day > last) return `${m}월은 ${last}일까지예요.`;
+  if (new Date(y, m - 1, day) > now) return "아직 오지 않은 날이에요.";
+  return "";
+}
+
+function validateHm(t: string): string {
+  if (t.length < 4) return "";
+  const h = Number(t.slice(0, 2));
+  const min = Number(t.slice(2, 4));
+  if (h > 23) return "시는 00~23으로 입력해 주세요.";
+  if (min > 59) return "분은 00~59로 입력해 주세요.";
+  return "";
 }
 
 const s = StyleSheet.create({
-  field: { backgroundColor: color.white, borderWidth: 1, borderColor: color.hanjiDeep, borderRadius: 14, padding: 14 },
-  fl: { fontFamily: FONT.sansMedium, fontSize: 12, color: color.inkMuted, marginBottom: 4 },
-  fv: { fontFamily: FONT.sansBold, fontSize: 17, color: color.ink },
-  empty: { color: color.inkMuted, fontFamily: FONT.sans },
-  toggleRow: { flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 4 },
-  checkbox: { width: 18, height: 18, borderRadius: 5, borderWidth: 1.5, borderColor: color.inkMuted, alignItems: "center", justifyContent: "center" },
-  checkboxOn: { backgroundColor: color.vermilion, borderColor: color.vermilion },
-  toggleLabel: { flex: 1, fontFamily: FONT.sans, fontSize: 13, color: color.inkSoft },
-  seg: { flex: 1, alignItems: "center", paddingVertical: 12, borderRadius: 14, borderWidth: 1, borderColor: color.hanjiDeep, backgroundColor: color.white },
-  segOn: { backgroundColor: color.ink, borderColor: color.ink },
-  chip: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: 100, backgroundColor: color.hanjiDeep },
-  chipOn: { backgroundColor: color.ink },
+  labelRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8 },
+  label: { fontFamily: FONT.sansBold, fontSize: 14, color: color.ink },
+  optional: { fontFamily: FONT.sans, fontSize: 12, color: color.inkMuted },
+  bigInput: {
+    fontFamily: FONT.serifBold,
+    fontSize: 30,
+    letterSpacing: 1,
+    color: color.ink,
+    backgroundColor: color.white,
+    borderWidth: 1,
+    borderColor: color.hanjiDeep,
+    borderRadius: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 18,
+  },
+  inputOff: { opacity: 0.4 },
+  inputErr: { borderColor: color.vermilion },
+  hint: { fontFamily: FONT.sans, fontSize: 12, color: color.inkMuted, marginTop: 6, lineHeight: 18 },
+  err: { fontFamily: FONT.sansMedium, fontSize: 13, color: color.vermilion },
+  seg: { flexDirection: "row", borderRadius: 100, backgroundColor: color.hanjiDeep, padding: 2 },
+  segBtn: { paddingVertical: 6, paddingHorizontal: 14, borderRadius: 100 },
+  segBtnOn: { backgroundColor: color.ink },
+  segText: { fontFamily: FONT.sansMedium, fontSize: 12, color: color.inkSoft },
+  segTextOn: { color: color.hanji },
+  pill: { paddingVertical: 7, paddingHorizontal: 12, borderRadius: 100, borderWidth: 1, borderColor: color.hanjiDeep, backgroundColor: color.white },
+  pillOn: { backgroundColor: color.ink, borderColor: color.ink },
+  pillText: { fontFamily: FONT.sansMedium, fontSize: 12, color: color.inkMuted },
+  pillTextOn: { color: color.hanji },
+  choice: { flex: 1, alignItems: "center", paddingVertical: 14, borderRadius: 14, borderWidth: 1, borderColor: color.hanjiDeep, backgroundColor: color.white },
+  choiceOn: { backgroundColor: color.ink, borderColor: color.ink },
+  choiceText: { fontFamily: FONT.sansMedium, fontSize: 14, color: color.inkSoft },
+  choiceTextOn: { color: color.hanji },
+  chip: { paddingVertical: 9, paddingHorizontal: 14, borderRadius: 100, backgroundColor: color.white, borderWidth: 1, borderColor: color.hanjiDeep },
+  chipOn: { backgroundColor: color.ink, borderColor: color.ink },
+  chipText: { fontFamily: FONT.sansMedium, fontSize: 13, color: color.inkSoft },
+  chipTextOn: { color: color.hanji },
 });

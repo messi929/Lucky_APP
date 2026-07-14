@@ -10,7 +10,9 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.palja.report",
-      "associatedDomains": ["applinks:paljareport.com"]
+      "associatedDomains": [
+        "applinks:paljareport.com"
+      ]
     },
     "android": {
       "package": "com.palja.report",
@@ -18,12 +20,28 @@
         {
           "action": "VIEW",
           "autoVerify": true,
-          "data": [{ "scheme": "https", "host": "paljareport.com", "pathPrefix": "/r" }],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "data": [
+            {
+              "scheme": "https",
+              "host": "paljareport.com",
+              "pathPrefix": "/r"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ]
     },
-    "plugins": ["expo-router", "expo-notifications"],
-    "experiments": { "typedRoutes": false }
+    "plugins": [
+      "expo-router",
+      "expo-notifications",
+      "expo-font",
+      "expo-secure-store"
+    ],
+    "experiments": {
+      "typedRoutes": false
+    }
   }
 }
