@@ -60,7 +60,7 @@ export function longitudeToCorrectionMin(longitude: number): number {
   return (longitude - KST_STANDARD_MERIDIAN) * 4;
 }
 
-/** 지역 코드 → 경도. 미지정 시 기본 경도 */
+/** 지역 코드 → 경도. 미지정·미지의 코드 시 기본 경도 (fallback으로 crash 방지) */
 export function regionLongitude(region?: RegionCode): number {
-  return region ? REGIONS[region].longitude : DEFAULT_LONGITUDE;
+  return REGIONS[region as RegionCode]?.longitude ?? DEFAULT_LONGITUDE;
 }
