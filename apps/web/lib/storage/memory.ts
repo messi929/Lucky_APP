@@ -12,6 +12,7 @@ import type {
 export function memoryAdapter(): StorageAdapter {
   const inputs = new Map<string, SajuInput>();
   const paid = new Set<string>();
+  const concernUnlocks = new Set<string>(); // `${token}:${concern}`
   const invites = new Map<string, InviteRecord>();
   const compats = new Map<string, CompatRecord>();
   const gifts = new Map<string, GiftRecord>();
@@ -23,6 +24,8 @@ export function memoryAdapter(): StorageAdapter {
     putInput: async (t, v) => void inputs.set(t, v),
     isPaid: async (t) => paid.has(t),
     setPaid: async (t) => void paid.add(t),
+    isConcernUnlocked: async (t, c) => concernUnlocks.has(`${t}:${c}`),
+    unlockConcern: async (t, c) => void concernUnlocks.add(`${t}:${c}`),
     getInvite: async (t) => invites.get(t) ?? null,
     putInvite: async (t, v) => void invites.set(t, v),
     getCompat: async (t) => compats.get(t) ?? null,

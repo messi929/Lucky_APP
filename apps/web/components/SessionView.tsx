@@ -2,7 +2,7 @@
 
 import type { SessionPayload } from "@lucky/api-client";
 import type { ConcernId } from "@lucky/core";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { Stamp } from "./ui";
 
@@ -24,22 +24,42 @@ export function SessionView({ token, concern }: { token: string; concern: string
   const [p, setP] = useState<SessionPayload | null>(null);
   const [err, setErr] = useState("");
   const [i, setI] = useState(0);
+  const [unlocking, setUnlocking] = useState(false);
 
-  useEffect(() => {
-    fetch("/api/session", {
+  const load = useCallback(async () => {
+    const r = await fetch("/api/session", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ token, concern: concern as ConcernId, ctx: { season: "2026H2", mode: "mz" } }),
-    })
-      .then(async (r) => {
-        const d = (await r.json()) as SessionPayload & { error?: string };
-        if (!r.ok) throw new Error(d.error ?? "세션을 불러오지 못했어요.");
-        setP(d);
-      })
-      .catch((e: Error) => setErr(e.message));
+    });
+    const d = (await r.json()) as SessionPayload & { error?: string };
+    if (!r.ok) throw new Error(d.error ?? "세션을 불러오지 못했어요.");
+    setP(d);
   }, [token, concern]);
 
-  const cards = useMemo(() => (p ? buildCards(p, router) : []), [p, router]);
+  useEffect(() => {
+    load().catch((e: Error) => setErr(e.message));
+  }, [load]);
+
+  const unlock = useCallback(async () => {
+    setUnlocking(true);
+    try {
+      const r = await fetch("/api/session/unlock", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ token, concern, withdrawalConsent: true }),
+      });
+      if (!r.ok) throw new Error("해금에 실패했어요.");
+      await load(); // 유료 4비트로 재조회
+      setI(1); // 진단 다음(근거)부터 이어보기
+    } catch (e) {
+      setErr((e as Error).message);
+    } finally {
+      setUnlocking(false);
+    }
+  }, [token, concern, load]);
+
+  const cards = useMemo(() => (p ? buildCards(p, router, unlock, unlocking) : []), [p, router, unlock, unlocking]);
 
   if (err) {
     return (
@@ -92,7 +112,12 @@ export function SessionView({ token, concern }: { token: string; concern: string
 
 type CardItem = { key: string; node: ReactNode; action?: ReactNode };
 
-function buildCards(p: SessionPayload, router: ReturnType<typeof useRouter>): CardItem[] {
+function buildCards(
+  p: SessionPayload,
+  router: ReturnType<typeof useRouter>,
+  unlock: () => void,
+  unlocking: boolean,
+): CardItem[] {
   const byKind = (k: string) => p.beats.find((b) => b.kind === k);
   const diagnosis = byKind("session_diagnosis");
   const q: React.CSSProperties = { fontFamily: "var(--serif)", fontWeight: 900, fontSize: 29, lineHeight: 1.42, color: "var(--ink)" };
@@ -194,7 +219,9 @@ function buildCards(p: SessionPayload, router: ReturnType<typeof useRouter>): Ca
       ),
       action: (
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          <button className="btn" style={{ background: "var(--gold)", color: "#fff" }} onClick={() => router.push("/pay")}>동의하고 열기 · 990원</button>
+          <button className="btn" style={{ background: "var(--gold)", color: "#fff" }} disabled={unlocking} onClick={unlock}>
+            {unlocking ? "여는 중…" : "동의하고 열기 · 990원"}
+          </button>
           <button className="btn ghost" onClick={() => router.push("/input")}>다른 고민부터 볼래요</button>
         </div>
       ),

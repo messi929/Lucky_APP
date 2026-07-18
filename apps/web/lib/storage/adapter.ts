@@ -39,9 +39,12 @@ export interface StorageAdapter {
   // 출생 입력 (결과 토큰)
   getInput(token: string): Promise<SajuInput | null>;
   putInput(token: string, input: SajuInput): Promise<void>;
-  // 결제 unlock
+  // 결제 unlock (토큰 전역)
   isPaid(token: string): Promise<boolean>;
   setPaid(token: string): Promise<void>;
+  // 주제 단위 해금 (상담 세션 — 고민 1개씩 결제)
+  isConcernUnlocked(token: string, concern: string): Promise<boolean>;
+  unlockConcern(token: string, concern: string): Promise<void>;
   // 궁합 초대
   getInvite(token: string): Promise<InviteRecord | null>;
   putInvite(token: string, rec: InviteRecord): Promise<void>;

@@ -1,6 +1,6 @@
 import type { SessionRequest } from "@lucky/api-client";
 import type { InterpretContext } from "@lucky/core";
-import { getInput, isPaid } from "@/lib/store";
+import { getInput, isSessionUnlocked } from "@/lib/store";
 import { buildSession } from "@/lib/session";
 import { currentSeason } from "@/lib/age";
 
@@ -32,7 +32,7 @@ export async function POST(req: Request): Promise<Response> {
     season: body.ctx?.season || currentSeason(),
     ...(body.ctx?.reaction ? { reaction: body.ctx.reaction } : {}),
     ...(body.ctx?.mode ? { mode: body.ctx.mode } : {}),
-    ...((await isPaid(body.token)) ? { paid: true } : {}),
+    ...((await isSessionUnlocked(body.token, body.concern)) ? { paid: true } : {}),
   };
 
   try {

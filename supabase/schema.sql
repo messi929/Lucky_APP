@@ -65,6 +65,14 @@ create table if not exists orders (
   created_at  timestamptz not null default now()
 );
 
+-- 주제 단위 해금 (상담 세션 — 고민 1개씩 결제)
+create table if not exists concern_unlocks (
+  token       text not null,           -- 결과 토큰
+  concern     text not null,           -- concerns.ts ConcernId
+  created_at  timestamptz not null default now(),
+  primary key (token, concern)
+);
+
 -- 서버 전용 접근: RLS 켜고 정책 없음 (service role은 RLS 우회)
 alter table results         enable row level security;
 alter table invites         enable row level security;
@@ -73,4 +81,5 @@ alter table gifts           enable row level security;
 alter table interpret_cache enable row level security;
 alter table events          enable row level security;
 alter table push_tokens     enable row level security;
+alter table concern_unlocks enable row level security;
 alter table orders          enable row level security;

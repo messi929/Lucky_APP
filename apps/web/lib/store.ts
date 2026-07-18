@@ -25,6 +25,16 @@ export function isPaid(token: string): Promise<boolean> {
   return storage.isPaid(token);
 }
 
+// ── 주제 단위 해금 (상담 세션 — 고민 1개씩) ──
+export function unlockConcern(token: string, concern: string): Promise<void> {
+  return storage.unlockConcern(token, concern);
+}
+/** 세션 해제 여부: 토큰 전역 결제 OR 그 주제 개별 해금 */
+export async function isSessionUnlocked(token: string, concern: string): Promise<boolean> {
+  if (await storage.isPaid(token)) return true;
+  return storage.isConcernUnlocked(token, concern);
+}
+
 // ── 궁합 초대 루프 (§8.1) ──
 export async function createInvite(ownerToken: string, relation: RelationType): Promise<string> {
   const inviteToken = nanoid(12);

@@ -22,6 +22,19 @@ export function supabaseAdapter(db: SupabaseClient): StorageAdapter {
     setPaid: async (t) => {
       await db.from("results").update({ paid: true }).eq("token", t);
     },
+    isConcernUnlocked: async (t, c) => {
+      const { data, error } = await db
+        .from("concern_unlocks")
+        .select("concern")
+        .eq("token", t)
+        .eq("concern", c)
+        .maybeSingle();
+      if (error) return false; // 테이블 미적용 시 안전하게 미해제
+      return !!data;
+    },
+    unlockConcern: async (t, c) => {
+      await db.from("concern_unlocks").upsert({ token: t, concern: c });
+    },
     getInvite: async (t) => {
       const { data } = await db
         .from("invites")
