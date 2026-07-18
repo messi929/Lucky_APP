@@ -189,7 +189,7 @@ function buildCards(p: SessionPayload): CardItem[] {
         <View style={{ alignItems: "center" }}>
           <Stamp char="緣" size={56} />
           <View style={{ height: 22 }} />
-          <Text style={st.pivot}>{diagnosis?.text ?? "…"}</Text>
+          <Text style={st.pivot}>{p.pivot ?? diagnosis?.text ?? "…"}</Text>
           <View style={{ height: 16 }} />
           <Text style={[st.sub, { textAlign: "center" }]}>— {p.concern.label}, 여기까지 봤어요.</Text>
         </View>

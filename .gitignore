@@ -8,6 +8,7 @@ coverage/
 .env.local
 .next/
 .expo/
+*.tsbuildinfo
 
 # 실제 키를 채워 넣는 파일 — 커밋 금지
 SETUP-KEYS.md

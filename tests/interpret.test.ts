@@ -7,12 +7,14 @@ import {
   applyGuardrails,
   cacheKeyOf,
   computeSaju,
+  CONCERNS,
   decomposeSessionUnits,
   decomposeUnits,
   DISCLAIMER,
   DISCLAIMER_CLASSIC,
   interpret,
   interpretSession,
+  pivotFor,
   PROMPT_VERSION,
   SESSION_BEATS,
   type CacheStore,
@@ -229,5 +231,22 @@ describe("상담 세션 리딩 (interpretSession — 진단→근거→시기→
     await interpretSession(chart, "marriage_timing", { season: "2026H2", paid: true }, { generate });
     expect(user).not.toContain("1990");
     expect(user).not.toMatch(/\b(19|20)\d{2}\b/);
+  });
+});
+
+describe("마무리 꺾는 문장 (pivotFor — concern별 authored)", () => {
+  it("18개 concern 전부 authored 꺾는 문장 보유 (진단문 fallback 없이)", () => {
+    for (const id of Object.keys(CONCERNS) as (keyof typeof CONCERNS)[]) {
+      const line = pivotFor(id);
+      expect(line, `pivot 누락: ${id}`).toBeTruthy();
+      expect(line!.length).toBeGreaterThan(10);
+    }
+  });
+
+  it("민감 concern(L3)도 질병·불안 단정 카피 금지 (가드레일 정합)", () => {
+    for (const id of ["child_fortune", "health_year", "parent_worry"] as const) {
+      const line = pivotFor(id)!;
+      expect(line).not.toMatch(/암|질병|수술|죽|이혼/);
+    }
   });
 });

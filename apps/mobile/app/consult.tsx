@@ -1,4 +1,4 @@
-import { concernsForAge, type ConcernId } from "@lucky/core";
+import { CONCERN_HUB, concernsForAge, type ConcernId } from "@lucky/core";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
@@ -11,44 +11,6 @@ import { color, FONT } from "@/lib/theme";
  * 상담 허브 (CONSULT-HUB) — "오늘 뭐가 궁금해요?".
  * 도사의 인사 → 고민 1개 선택 → 집중 세션. 연령 적응 노출은 core에서 로컬 계산(네트워크 0).
  */
-
-/** 고민별 낙관 한자 마커 (없으면 問) */
-const HANJA: Partial<Record<ConcernId, string>> = {
-  love_dating: "答",
-  marriage_timing: "緣",
-  marital: "緣",
-  relationship: "答",
-  career_path: "運",
-  job: "運",
-  business: "運",
-  retirement_finance: "福",
-  money_timing: "福",
-  real_estate: "福",
-  stability: "福",
-  parent_worry: "問",
-  child_fortune: "問",
-  descendants: "問",
-  exam: "運",
-  contract_timing: "吉",
-  taekil: "吉",
-  health_year: "問",
-};
-
-/** 고민별 한 줄 부제 */
-const SUB: Partial<Record<ConcernId, string>> = {
-  love_dating: "썸과 연애의 결",
-  marriage_timing: "언제, 어떤 인연",
-  marital: "부부의 결",
-  relationship: "사람과의 거리",
-  career_path: "일의 방향",
-  job: "지금 움직여도 될까",
-  money_timing: "열리고 닫히는 때",
-  real_estate: "집·계약의 때",
-  child_fortune: "그 아이의 길",
-  exam: "시험의 흐름",
-  contract_timing: "그 계약, 언제",
-  health_year: "올 한 해 몸의 결",
-};
 
 function ageFrom(birthDate: string): number {
   const y = Number(birthDate.slice(0, 4));
@@ -97,9 +59,9 @@ export default function ConsultHub() {
       <View style={s.grid}>
         {concerns.map((c) => (
           <Pressable key={c.id} style={s.tile} onPress={() => router.push(`/session/${c.id}`)}>
-            <Text style={s.tHanja}>{HANJA[c.id] ?? "問"}</Text>
+            <Text style={s.tHanja}>{CONCERN_HUB[c.id].hanja}</Text>
             <Text style={s.tLabel}>{c.label}</Text>
-            <Text style={s.tSub}>{SUB[c.id] ?? "이 주제로 상담"}</Text>
+            <Text style={s.tSub}>{CONCERN_HUB[c.id].sub}</Text>
           </Pressable>
         ))}
       </View>

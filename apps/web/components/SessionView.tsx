@@ -190,7 +190,7 @@ function buildCards(
         <div style={{ textAlign: "center" }}>
           <Stamp char="緣" size={64} />
           <div style={{ height: 22 }} />
-          <p style={{ fontFamily: "var(--serif)", fontWeight: 900, fontSize: 27, lineHeight: 1.45, color: "var(--vermil)" }}>{diagnosis?.text}</p>
+          <p style={{ fontFamily: "var(--serif)", fontWeight: 900, fontSize: 27, lineHeight: 1.45, color: "var(--vermil)" }}>{p.pivot ?? diagnosis?.text}</p>
           <div style={{ height: 16 }} />
           <p className="sub">— {p.concern.label}, 여기까지 봤어요.</p>
         </div>
@@ -222,7 +222,7 @@ function buildCards(
           <button className="btn" style={{ background: "var(--gold)", color: "#fff" }} disabled={unlocking} onClick={unlock}>
             {unlocking ? "여는 중…" : "동의하고 열기 · 990원"}
           </button>
-          <button className="btn ghost" onClick={() => router.push("/input")}>다른 고민부터 볼래요</button>
+          <button className="btn ghost" onClick={() => router.push(`/s/${p.token}`)}>다른 고민부터 볼래요</button>
         </div>
       ),
     });
@@ -234,5 +234,5 @@ function buildCards(
 function nextHref(p: SessionPayload): string {
   if (p.next?.concern) return `/s/${p.token}/${p.next.concern}`;
   if (p.next?.sku === "taekil") return "/vertical/taekil";
-  return "/input";
+  return `/s/${p.token}`;
 }

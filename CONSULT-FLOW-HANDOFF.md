@@ -86,14 +86,15 @@
 - [ ] 유료 4비트 **UI** 시각검증(백엔드는 curl로 검증됨). MCP 브라우저 복구 후 또는 실기기
 
 **UX 완성**
-- [ ] 웹 허브 페이지 신설(또는 리포트 덱을 "오프닝"으로 재정의하고 허브 분리)
-- [ ] concern별 authored "꺾는 문장" 카피(사람 트랙) — 마무리 임팩트
-- [ ] 나머지 concern의 "다음 주제 추천" 매핑 확장(`apps/web/lib/session.ts`의 `NEXT`)
+- [x] 웹 허브 페이지 신설 — `apps/web/app/s/[token]/page.tsx`(연령 적응 6타일). 리포트 덱 "다른 고민 보기" → 허브 링크. 세션 폴백도 허브로.
+- [x] concern별 authored "꺾는 문장" 카피 — `packages/core/src/content/pivots.ts`(18종 draft). `SessionPayload.pivot`으로 웹·모바일 공유. 사람 최종확정(status draft→final)만 남음.
+- [x] 나머지 concern의 "다음 주제 추천" 매핑 확장 — `NEXT` 18종 전체(taekil은 종착→허브).
 - [ ] 모바일 세션 화면 실기기 UX 점검(작은 폰 넘침, 붓글씨 타이밍 등)
 
 **정리**
 - [ ] `expo-sdk54-ux` → main 병합 시점 결정
-- [ ] `tsconfig.tsbuildinfo` gitignore
+- [x] `tsconfig.tsbuildinfo` gitignore — `*.tsbuildinfo` 추가 + 추적 해제
+- [x] 허브 타일 표현(한자·부제) core 단일화 — `CONCERN_HUB`(concerns.ts). 모바일 로컬 맵 제거(원칙 8)
 
 ## 5. 다음에 검증하는 법 (명령어)
 

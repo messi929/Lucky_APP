@@ -193,6 +193,31 @@ export function concernById(id: ConcernId): Concern {
   return CONCERNS[id];
 }
 
+/**
+ * 상담 허브 타일 표현 (낙관 한자 마커 + 한 줄 부제). 웹·모바일 허브 공용 단일 소스(원칙 8).
+ * 한자는 디자인 §불변 4 낙관 세트에서: 答(고민) 緣(궁합) 運(처방) 福(선물) 問(질문) 吉(택일).
+ */
+export const CONCERN_HUB: Record<ConcernId, { hanja: string; sub: string }> = {
+  love_dating: { hanja: "答", sub: "썸과 연애의 결" },
+  marriage_timing: { hanja: "緣", sub: "언제, 어떤 인연" },
+  marital: { hanja: "緣", sub: "부부의 결" },
+  relationship: { hanja: "答", sub: "사람과의 거리" },
+  career_path: { hanja: "運", sub: "일의 방향" },
+  job: { hanja: "運", sub: "지금 움직여도 될까" },
+  business: { hanja: "運", sub: "확장과 정리 사이" },
+  retirement_finance: { hanja: "福", sub: "지키고 누리는 때" },
+  money_timing: { hanja: "福", sub: "열리고 닫히는 때" },
+  real_estate: { hanja: "福", sub: "집·계약의 때" },
+  stability: { hanja: "福", sub: "덜어내며 단단해지기" },
+  parent_worry: { hanja: "問", sub: "부모님, 그리고 나" },
+  child_fortune: { hanja: "問", sub: "그 아이의 길" },
+  descendants: { hanja: "問", sub: "곁의 온기" },
+  exam: { hanja: "運", sub: "시험의 흐름" },
+  contract_timing: { hanja: "吉", sub: "그 계약, 언제" },
+  taekil: { hanja: "吉", sub: "좋은 날 고르기" },
+  health_year: { hanja: "問", sub: "올 한 해 몸의 결" },
+};
+
 /** 만 나이 → 연령 버킷 (§7.2) */
 export function ageToBucket(age: number): AgeBucket {
   if (age < 20) return "teens20";

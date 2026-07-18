@@ -190,7 +190,12 @@ export function ReportDeck({ initial }: { initial: ReportPayload }) {
           ))}
         </div>
         <div style={{ height: 14 }} />
-        <div style={{ fontSize: 13, fontWeight: 500, color: "var(--vermil)" }}>다른 고민 보기 — 자녀·택일·건강한 한 해 …</div>
+        <a
+          href={`/s/${payload.token}`}
+          style={{ fontSize: 13, fontWeight: 500, color: "var(--vermil)", textDecoration: "none" }}
+        >
+          다른 고민 보기 — 자녀·택일·건강한 한 해 …
+        </a>
         <div className="grow" />
         <Dots total={7} active={4} />
       </section>

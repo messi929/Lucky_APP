@@ -97,6 +97,8 @@ export interface SessionPayload {
   chart: ChartSummary;
   /** 도사의 다음 주제 권유 (없으면 허브로) */
   next: { concern?: ConcernId; label: string; sub: string; sku?: SkuId } | null;
+  /** 마무리 주홍 "꺾는 문장" (concern별 authored, 없으면 진단문 fallback) */
+  pivot: string | null;
   disclaimer: string;
   promptVersion: string;
 }
