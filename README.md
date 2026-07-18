@@ -155,6 +155,7 @@ cd apps/mobile && npx expo start   # QR 스캔
 ---
 
 ## 문서 색인
+- `CONSULT-FLOW-HANDOFF.md` — **상담 세션 플로우 재설계 작업 핸드오프** (진행 중, `expo-sdk54-ux`): 한 주제씩 상담(허브&세션) + 주제 단위 해금. 남은 할 일·짚어둘 점 정리
 - `CLAUDE.md` — 불변 원칙·계산 코어·해석·디자인 규칙 (개발 가이드)
 - `saju-service-spec-v1.2.md` — 기준 기획서
 - `VERIFICATION-REPORT.md` — 엔진(ssaju) 교차검증 결과
