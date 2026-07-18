@@ -78,6 +78,12 @@ function guardrailDirective(level: GuardrailLevel): string {
   return "";
 }
 
+/** 세션 비트의 concern 프롬프트 템플릿 (unit.concern 우선, ctx 폴백) */
+function concernFor(unit: InterpretationUnit, ctx: InterpretContext): string {
+  const id = unit.concern ?? ctx.concern;
+  return id ? concernById(id).promptTemplate : "고른 고민의 흐름을 짚어 주세요.";
+}
+
 /** 유닛별 사용자 프롬프트 지시문 */
 function unitInstruction(unit: InterpretationUnit, ctx: InterpretContext): string {
   const tone = toneOf(ctx);
@@ -92,6 +98,16 @@ function unitInstruction(unit: InterpretationUnit, ctx: InterpretContext): strin
         : "올해 하반기 흐름을 키워드 3개와 한 줄 조언으로 제시하세요.";
       return `${template} 올해 하반기 흐름 중심으로. ${toneDirective(tone)}`;
     }
+    case "session_diagnosis": {
+      const t = concernFor(unit, ctx);
+      return `[상담 진단] ${t} 지금은 '핵심 결론' 한 문장만 단정하세요. 근거는 다음 장에서 밝히니 여기선 결론만, 궁금하게. ${toneDirective(tone)}`;
+    }
+    case "session_reason":
+      return "[상담 근거] 앞의 진단이 왜 그런지, 이 사람 원국의 '특정 글자'(일지·월간 십신·부족/과한 오행 중 하나)를 콕 집어 근거로 대세요. 2문장 이내. 사주 용어는 괄호로 짧게 풀어서.";
+    case "session_timing":
+      return "[상담 시기] 그 흐름이 열리고 닫히는 '때'를 말하세요. 특정 연도나 구간(예: 2027~2028)은 제시하되 '반드시/틀림없이' 류 단정은 금지 — '기운이 열리는 구간' 수준의 관망 언어로. 1~2문장.";
+    case "session_remedy":
+      return "[상담 처방] 그때까지 어떻게 지내면 좋은지 — 태도 하나 + 개운(색 또는 방향) 하나를 처방으로. '~하세요' 명령형으로 담백하게. 2문장 이내.";
     case "caution":
       return "가장 부족한 오행을 근거로, 올 하반기 '조심할 것' 하나를 '주의 + 대처' 프레임으로 알려 주세요. 겁주지 말고 대처 위주로.";
     default:

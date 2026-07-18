@@ -9,10 +9,11 @@ import { dayMasterByStemIdx } from "../content/characters.js";
 import { iljuHook } from "../content/hooks.js";
 import { remedyFor, type Remedy } from "../content/remedies.js";
 import type { Element } from "../saju/constants.js";
+import type { ConcernId } from "../content/concerns.js";
 import { cacheKeyOf } from "./cache-key.js";
 import { applyGuardrails, DISCLAIMER, DISCLAIMER_CLASSIC } from "./guardrails.js";
 import { buildPrompt, modeOf, PROMPT_VERSION } from "./persona.js";
-import { decomposeUnits } from "./units.js";
+import { decomposeSessionUnits, decomposeUnits } from "./units.js";
 import type {
   InterpretContext,
   InterpretDeps,
@@ -20,6 +21,7 @@ import type {
   InterpretedReport,
   ResolvedUnit,
   SajuChart,
+  SessionReading,
 } from "./types.js";
 
 /** 가드레일 실패 시 최종 안전 폴백(겁주지 않는 톤) */
@@ -28,6 +30,10 @@ const SAFE_FALLBACK: Record<string, string> = {
   personality_core: "겉으로 드러나는 모습과 속마음의 결이 조금 다른 분이에요.",
   seasonal_fortune: "하반기엔 서두르기보다 흐름을 살피며 한 걸음씩 가면 좋아요.",
   caution: "무리한 결정은 한 템포만 늦춰 보세요. 그게 올해의 대처법이에요.",
+  session_diagnosis: "이 고민은 '흐름을 타는' 쪽이 맞아요. 조급함만 내려놓으면 길이 보입니다.",
+  session_reason: "타고난 기질의 결이 이 주제에서 특히 또렷하게 드러나거든요.",
+  session_timing: "서두르기보다 흐름을 살피기 좋은 시기예요. 무리한 결정은 한 박자 늦춰 보세요.",
+  session_remedy: "지금의 페이스를 지키되, 마음의 여백을 한 뼘 넓혀 두세요.",
 };
 
 export async function interpret(
@@ -42,6 +48,26 @@ export async function interpret(
   }
   const disclaimer = modeOf(ctx) === "classic" ? DISCLAIMER_CLASSIC : DISCLAIMER;
   return { units: resolved, disclaimer, promptVersion: PROMPT_VERSION };
+}
+
+/**
+ * 상담 세션 리딩 — concern 1개 집중(진단→근거→시기→처방).
+ * 무료면 진단만 생성(비용 절감), 유료면 4비트 전체. 나머지는 lockedBeats로 결제 유도.
+ * 오프닝 리포트(interpret)와 분리 — 허브에서 주제 선택 시 이 함수 호출.
+ */
+export async function interpretSession(
+  chart: SajuChart,
+  concern: ConcernId,
+  ctx: InterpretContext,
+  deps: InterpretDeps,
+): Promise<SessionReading> {
+  const { units, locked } = decomposeSessionUnits(chart, concern, { ...ctx, concern });
+  const beats: ResolvedUnit[] = [];
+  for (const unit of units) {
+    beats.push(await resolveUnit(unit, chart, { ...ctx, concern }, deps));
+  }
+  const disclaimer = modeOf(ctx) === "classic" ? DISCLAIMER_CLASSIC : DISCLAIMER;
+  return { concern, beats, lockedBeats: locked, disclaimer, promptVersion: PROMPT_VERSION };
 }
 
 async function resolveUnit(

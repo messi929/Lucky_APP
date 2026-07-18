@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { ReportPayload } from "@lucky/api-client";
-import type { ConcernId, Mode, Reaction, ResolvedUnit } from "@lucky/core";
+import type { Mode, Reaction, ResolvedUnit } from "@lucky/core";
 import { AskBox } from "./AskBox";
 import { BrushIntro } from "./BrushIntro";
 import { CompatInvite } from "./CompatInvite";
@@ -21,7 +21,6 @@ export function ReportDeck({ initial }: { initial: ReportPayload }) {
   const [payload, setPayload] = useState(initial);
   const [mode, setMode] = useState<Mode>(initial.adaptive.defaultMode);
   const [reaction, setReaction] = useState<Reaction | undefined>();
-  const [concern, setConcern] = useState<ConcernId | undefined>();
   const [showIntro, setShowIntro] = useState(true);
   const [loading, setLoading] = useState(false);
 
@@ -32,13 +31,12 @@ export function ReportDeck({ initial }: { initial: ReportPayload }) {
     if (!showIntro) track("report_view", { token: payload.token });
   }, [showIntro, payload.token]);
 
-  async function reload(patch: { mode?: Mode; reaction?: Reaction; concern?: ConcernId }) {
+  async function reload(patch: { mode?: Mode; reaction?: Reaction }) {
     setLoading(true);
     const ctx = {
       season: "",
       mode: patch.mode ?? mode,
       ...((patch.reaction ?? reaction) ? { reaction: patch.reaction ?? reaction } : {}),
-      ...((patch.concern ?? concern) ? { concern: patch.concern ?? concern } : {}),
     };
     try {
       const res = await fetch("/api/report", {
@@ -181,14 +179,14 @@ export function ReportDeck({ initial }: { initial: ReportPayload }) {
         <div style={{ height: 20 }} />
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
           {payload.adaptive.concerns.map((co) => (
-            <button
+            <a
               key={co.id}
-              onClick={() => { setConcern(co.id); void reload({ concern: co.id }); }}
+              href={`/s/${payload.token}/${co.id}`}
               className="tile"
-              style={{ textAlign: "left", borderColor: concern === co.id ? "var(--ink)" : "var(--paper-dk)", borderWidth: concern === co.id ? 2 : 1 }}
+              style={{ textAlign: "left", borderColor: "var(--paper-dk)", borderWidth: 1, textDecoration: "none", color: "inherit" }}
             >
               <div className="tt">{co.label}</div>
-            </button>
+            </a>
           ))}
         </div>
         <div style={{ height: 14 }} />

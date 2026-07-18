@@ -1,6 +1,7 @@
-import type { ReportContextInput, ReportPayload } from "@lucky/api-client";
+import type { ReportContextInput, ReportPayload, SessionPayload } from "@lucky/api-client";
 import type {
   CompatResult,
+  ConcernId,
   Mode,
   RelationType,
   SajuInput,
@@ -47,6 +48,15 @@ export async function fetchReport(
 
 export async function fetchDaily(token: string): Promise<{ line: string; todayGanji: string }> {
   return post("/api/daily", { token });
+}
+
+// ── 상담 세션 (concern 1개 집중: 진단→근거→시기→처방) ──
+export async function fetchSession(
+  token: string,
+  concern: ConcernId,
+  ctx: Partial<ReportContextInput> = {},
+): Promise<SessionPayload> {
+  return post<SessionPayload>("/api/session", { token, concern, ctx: { season: "", ...ctx } });
 }
 
 // ── 궁합 (§8.1) ──

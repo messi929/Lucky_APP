@@ -1,7 +1,7 @@
 /** 해석 레이어 공개 API (packages/core/interpret, 기획서 §4) */
 
-export { interpret } from "./interpret.js";
-export { decomposeUnits, deriveFacts, toneOf } from "./units.js";
+export { interpret, interpretSession } from "./interpret.js";
+export { decomposeUnits, decomposeSessionUnits, deriveFacts, toneOf } from "./units.js";
 export { cacheKeyOf } from "./cache-key.js";
 export {
   applyGuardrails,
@@ -18,6 +18,7 @@ export {
   PROMPT_VERSION,
   MODELS,
 } from "./persona.js";
+export { SESSION_BEATS } from "./types.js";
 export type {
   Reaction,
   Tone,
@@ -25,9 +26,11 @@ export type {
   InterpretContext,
   UnitKind,
   UnitSource,
+  SessionBeatKind,
   InterpretationUnit,
   ResolvedUnit,
   InterpretedReport,
+  SessionReading,
   GenerateFn,
   CacheStore,
   InterpretDeps,

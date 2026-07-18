@@ -56,8 +56,13 @@ export default function Home() {
       )}
 
       <View style={{ height: 12 }} />
-      {token && <Btn label="내 리포트 다시 보기" variant="ink" onPress={() => router.push(`/r/${token}`)} />}
+      {token && <Btn label="오늘의 상담 — 궁금한 것 하나 묻기" variant="ink" onPress={() => router.push("/consult")} />}
       <View style={{ height: 8 }} />
+      {token && (
+        <Link href={`/r/${token}`} asChild>
+          <Card style={s.linkCard}><Text style={s.linkTitle}>내 팔자 리포트 다시 보기</Text></Card>
+        </Link>
+      )}
 
       <Link href="/onboarding/push" asChild>
         <Card style={s.linkCard}><Text style={s.linkTitle}>매일 아침 8시, 오늘의 한 줄 받기</Text></Card>

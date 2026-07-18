@@ -7,11 +7,14 @@ import {
   applyGuardrails,
   cacheKeyOf,
   computeSaju,
+  decomposeSessionUnits,
   decomposeUnits,
   DISCLAIMER,
   DISCLAIMER_CLASSIC,
   interpret,
+  interpretSession,
   PROMPT_VERSION,
+  SESSION_BEATS,
   type CacheStore,
   type GenerateFn,
   type InterpretContext,
@@ -164,5 +167,67 @@ describe("오케스트레이터 (DI, §4.1)", () => {
     expect(user).not.toMatch(/\b(19|20)\d{2}\b/);
     expect(user).not.toContain("1990");
     expect(user).toContain("원국");
+  });
+});
+
+describe("상담 세션 리딩 (interpretSession — 진단→근거→시기→처방)", () => {
+  it("무료는 진단 1비트, 근거·시기·처방은 locked", () => {
+    const { units, locked } = decomposeSessionUnits(chart, "marriage_timing", {
+      season: "2026H2",
+    });
+    expect(units.map((u) => u.kind)).toEqual(["session_diagnosis"]);
+    expect(locked).toEqual(["session_reason", "session_timing", "session_remedy"]);
+  });
+
+  it("유료는 4비트 전체, locked 없음", () => {
+    const { units, locked } = decomposeSessionUnits(chart, "marriage_timing", {
+      season: "2026H2",
+      paid: true,
+    });
+    expect(units.map((u) => u.kind)).toEqual(SESSION_BEATS);
+    expect(locked).toEqual([]);
+  });
+
+  it("세션 비트는 concern·시즌 축 + 가드레일 상속 (L3 자녀운)", () => {
+    const { units } = decomposeSessionUnits(chart, "child_fortune", { season: "2026H2", paid: true });
+    for (const u of units) {
+      expect(u.concern).toBe("child_fortune");
+      expect(u.guardrailLevel).toBe(3);
+      expect(u.seasonal).toBe(true);
+    }
+  });
+
+  it("비트마다 캐시 키가 다르다 (kind 축)", () => {
+    const { units } = decomposeSessionUnits(chart, "money_timing", { season: "2026H2", paid: true });
+    const keys = units.map((u) => cacheKeyOf(u, { season: "2026H2", concern: "money_timing" }, PROMPT_VERSION)!);
+    expect(new Set(keys).size).toBe(4);
+  });
+
+  it("interpretSession: 무료는 진단만 조립 + lockedBeats 3개", async () => {
+    const generate: GenerateFn = async () => "당신의 결혼은 늦되 확실합니다.";
+    const s = await interpretSession(chart, "marriage_timing", { season: "2026H2" }, { generate });
+    expect(s.beats.map((b) => b.kind)).toEqual(["session_diagnosis"]);
+    expect(s.lockedBeats).toHaveLength(3);
+    expect(s.beats[0]!.text.length).toBeGreaterThan(0);
+    expect(s.disclaimer).toBe(DISCLAIMER);
+  });
+
+  it("interpretSession: 유료는 4비트 전부 생성", async () => {
+    const generate = vi.fn<GenerateFn>(async () => "근거가 있는 해석입니다.");
+    const s = await interpretSession(chart, "marriage_timing", { season: "2026H2", paid: true }, { generate });
+    expect(s.beats).toHaveLength(4);
+    expect(s.lockedBeats).toHaveLength(0);
+    expect(generate).toHaveBeenCalledTimes(4);
+  });
+
+  it("세션 프롬프트도 생년월일 원본 미포함 (원칙 2)", async () => {
+    let user = "";
+    const generate: GenerateFn = async (p) => {
+      user = p.user;
+      return "해석입니다.";
+    };
+    await interpretSession(chart, "marriage_timing", { season: "2026H2", paid: true }, { generate });
+    expect(user).not.toContain("1990");
+    expect(user).not.toMatch(/\b(19|20)\d{2}\b/);
   });
 });

@@ -3,9 +3,16 @@
  * 순수 함수. LLM/캐시 호출 없음.
  */
 
-import { concernById } from "../content/concerns.js";
+import { concernById, type ConcernId } from "../content/concerns.js";
 import type { Element } from "../saju/constants.js";
-import type { InterpretContext, InterpretationUnit, SajuChart, Tone } from "./types.js";
+import {
+  SESSION_BEATS,
+  type InterpretContext,
+  type InterpretationUnit,
+  type SajuChart,
+  type SessionBeatKind,
+  type Tone,
+} from "./types.js";
 
 /** ssaju fiveElements 한글 키 → Element */
 const KO_TO_ELEMENT: Record<string, Element> = {
@@ -126,4 +133,34 @@ export function decomposeUnits(chart: SajuChart, ctx: InterpretContext): Interpr
   }
 
   return units;
+}
+
+/**
+ * 상담 세션 유닛 분해 — concern 1개에 대한 집중 리딩(진단→근거→시기→처방).
+ * 무료(paid=false)면 진단 비트만, 유료면 4비트 전체. 나머지는 lockedBeats로.
+ * 모두 LLM·시즌·concern 축. 가드레일 단계는 concern에서 상속(L2 관망/L3 민감).
+ */
+export function decomposeSessionUnits(
+  chart: SajuChart,
+  concernId: ConcernId,
+  ctx: InterpretContext,
+): { units: InterpretationUnit[]; locked: SessionBeatKind[] } {
+  const f = deriveFacts(chart);
+  const tone = toneOf(ctx);
+  const concern = concernById(concernId);
+  const value = `${f.iljuHanja}|${f.monthStemTenGod}|${f.yearGanji}|${tone}`;
+
+  const active: SessionBeatKind[] = ctx.paid ? SESSION_BEATS : ["session_diagnosis"];
+  const locked = SESSION_BEATS.filter((b) => !active.includes(b));
+
+  const units: InterpretationUnit[] = active.map((kind) => ({
+    kind,
+    source: "llm",
+    value,
+    seasonal: true,
+    guardrailLevel: concern.guardrailLevel,
+    concern: concernId,
+  }));
+
+  return { units, locked };
 }

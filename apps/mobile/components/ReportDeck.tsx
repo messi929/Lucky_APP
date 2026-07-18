@@ -37,16 +37,14 @@ export function ReportDeck({ initial }: { initial: ReportPayload }) {
   const [payload, setPayload] = useState(initial);
   const [mode, setMode] = useState<Mode>(initial.adaptive.defaultMode);
   const [reaction, setReaction] = useState<Reaction | undefined>();
-  const [concern, setConcern] = useState<ConcernId | undefined>();
   const [showIntro, setShowIntro] = useState(true);
   const [index, setIndex] = useState(0);
   const listRef = useRef<FlatList<CardItem>>(null);
 
-  async function reload(patch: { mode?: Mode; reaction?: Reaction; concern?: ConcernId }) {
+  async function reload(patch: { mode?: Mode; reaction?: Reaction }) {
     const next = await fetchReport(payload.token, {
       mode: patch.mode ?? mode,
       ...((patch.reaction ?? reaction) ? { reaction: patch.reaction ?? reaction } : {}),
-      ...((patch.concern ?? concern) ? { concern: patch.concern ?? concern } : {}),
     }).catch(() => null);
     if (next) setPayload(next);
   }
@@ -174,14 +172,14 @@ export function ReportDeck({ initial }: { initial: ReportPayload }) {
           <View style={{ height: 16 }} />
           <Text style={[st.hSerif, { fontSize: 28 }]}>그래서, 요즘{"\n"}뭐가 제일 답답해요?</Text>
           <View style={{ height: 8 }} />
-          <Text style={st.sub}>하나만 골라주세요. 뒤 이야기가 그쪽으로 갑니다.</Text>
+          <Text style={st.sub}>하나만 골라주세요. 그 주제로 끝까지 상담해 드려요.</Text>
           <View style={{ height: 20 }} />
           <View style={st.tileGrid}>
             {payload.adaptive.concerns.map((co) => (
               <Pressable
                 key={co.id}
-                onPress={() => { setConcern(co.id); void reload({ concern: co.id }); }}
-                style={[st.tile, concern === co.id && st.tileOn]}
+                onPress={() => router.push(`/session/${co.id}`)}
+                style={st.tile}
               >
                 <Text style={{ fontFamily: FONT.sansBold, fontSize: 15, color: color.ink }}>{co.label}</Text>
               </Pressable>

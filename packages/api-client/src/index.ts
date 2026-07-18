@@ -9,6 +9,7 @@ import type {
   Reaction,
   ResolvedUnit,
   SajuInput,
+  SessionBeatKind,
 } from "@lucky/core";
 
 /** 결과 접근 토큰: nanoid 12+ (추측 불가) */
@@ -72,6 +73,32 @@ export interface ReportPayload {
   paid: boolean;
   /** 오늘의 한 줄 (§10.1) */
   daily: { line: string; todayGanji: string };
+}
+
+// ── 상담 세션 (concern 1개 집중: 진단→근거→시기→처방) ──
+
+/** 세션 리딩 요청 */
+export interface SessionRequest {
+  token: ResultToken;
+  concern: ConcernId;
+  ctx: ReportContextInput;
+}
+
+/** 상담 세션 응답 (허브에서 주제 1개 선택 → 집중 리딩) */
+export interface SessionPayload {
+  token: ResultToken;
+  concern: { id: ConcernId; label: string };
+  /** 생성된 비트 (무료=진단만, 유료=4비트 전체). 진단→근거→시기→처방 순 */
+  beats: ResolvedUnit[];
+  /** 미해제 비트 (무료 시). 결제(주제 단위 해금) 유도용 */
+  lockedBeats: SessionBeatKind[];
+  paid: boolean;
+  /** 마무리 "꺾는 문장"이 렌더될 원국 요약 (근거 비트의 일지 하이라이트용) */
+  chart: ChartSummary;
+  /** 도사의 다음 주제 권유 (없으면 허브로) */
+  next: { concern?: ConcernId; label: string; sub: string; sku?: SkuId } | null;
+  disclaimer: string;
+  promptVersion: string;
 }
 
 // ── 수익화 SKU (기획서 §7.4, §9) ──

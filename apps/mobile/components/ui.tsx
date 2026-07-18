@@ -31,7 +31,7 @@ export function InkCircle({ char, size = 220, bg = color.ink }: { char: string; 
   );
 }
 
-type BtnVariant = "ink" | "kakao" | "vermil" | "ghost";
+type BtnVariant = "ink" | "kakao" | "vermil" | "gold" | "ghost";
 export function Btn({
   label,
   onPress,
@@ -45,7 +45,7 @@ export function Btn({
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
 }) {
-  const bg = { ink: color.ink, kakao: color.kakao, vermil: color.vermilion, ghost: "transparent" }[variant];
+  const bg = { ink: color.ink, kakao: color.kakao, vermil: color.vermilion, gold: color.gold, ghost: "transparent" }[variant];
   const fg = variant === "kakao" ? color.ink : variant === "ghost" ? color.inkSoft : color.hanji;
   return (
     <Pressable

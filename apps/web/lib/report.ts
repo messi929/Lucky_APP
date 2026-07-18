@@ -16,15 +16,10 @@ import { dailyFor } from "./daily";
 
 const POSITIONS = ["year", "month", "day", "hour"] as const;
 
-/** 출생 입력 + 컨텍스트 → 카드 렌더 페이로드 (생년월일 원본 미노출) */
-export async function buildReport(
-  token: string,
-  input: SajuInput,
-  ctx: InterpretContext,
-): Promise<ReportPayload> {
-  const chart = computeSaju(input);
-  const report = await interpret(chart, ctx, { generate, cache: memCache });
+type Chart = ReturnType<typeof computeSaju>;
 
+/** SajuChart → 카드 렌더용 원국 요약 (생년월일 원본 미노출). 리포트·세션 공용 */
+export function buildChartSummary(chart: Chart, input: SajuInput): ChartSummary {
   const facts = deriveFacts(chart);
   const remedy = remedyFor(facts.weakestElement);
   const character = dayMasterByStemIdx(facts.dayStemIdx);
@@ -40,7 +35,7 @@ export async function buildReport(
     branchKo: pd[p].branchKo,
   }));
 
-  const chartSummary: ChartSummary = {
+  return {
     pillars,
     fiveElements: chart.saju.fiveElements,
     dayStemIdx: facts.dayStemIdx,
@@ -56,7 +51,18 @@ export async function buildReport(
       : { isBoundary: false },
     unknownTime: input.unknownTime,
   };
+}
 
+/** 출생 입력 + 컨텍스트 → 카드 렌더 페이로드 (생년월일 원본 미노출) */
+export async function buildReport(
+  token: string,
+  input: SajuInput,
+  ctx: InterpretContext,
+): Promise<ReportPayload> {
+  const chart = computeSaju(input);
+  const report = await interpret(chart, ctx, { generate, cache: memCache });
+
+  const chartSummary = buildChartSummary(chart, input);
   const age = ageFromBirth(input.birthDate);
   return {
     token,
