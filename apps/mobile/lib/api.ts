@@ -9,16 +9,53 @@ import type {
   TaekilResult,
 } from "@lucky/core";
 import { API_BASE } from "./theme";
+import { clearBeta, loadBeta } from "./storage";
+
+/** 초대 전용 베타: 저장된 자격 증명을 헤더로 실어 보낸다(웹 쿠키와 동일 게이트). */
+async function betaHeaders(): Promise<Record<string, string>> {
+  const beta = await loadBeta();
+  return { "content-type": "application/json", ...(beta ? { "x-palja-beta": beta } : {}) };
+}
+
+/** 401 = 베타 자격 없음/만료 → 저장값 비우고 재입장 유도 */
+export class BetaRequiredError extends Error {
+  constructor() {
+    super("초대 전용 베타입니다. 초대 코드가 필요해요.");
+    this.name = "BetaRequiredError";
+  }
+}
+
+async function guard(res: Response): Promise<void> {
+  if (res.status === 401) {
+    await clearBeta();
+    throw new BetaRequiredError();
+  }
+}
 
 async function post<T>(path: string, body: unknown): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: await betaHeaders(),
     body: JSON.stringify(body),
   });
+  await guard(res);
   const json = (await res.json()) as T & { error?: string };
   if (!res.ok) throw new Error(json.error ?? "요청에 실패했어요.");
   return json;
+}
+
+/** 초대 코드 교환 → 자격 증명(서명값) 반환. 저장은 호출부(saveBeta). */
+export async function redeemBeta(code: string): Promise<string> {
+  const res = await fetch(`${API_BASE}/api/beta/redeem`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ code: code.trim() }),
+  });
+  const json = (await res.json()) as { ok?: boolean; token?: string; error?: string };
+  if (!res.ok || !json.ok || !json.token) {
+    throw new Error(json.error ?? "유효하지 않은 초대 코드예요.");
+  }
+  return json.token;
 }
 
 /** 백엔드(Next.js API) 호출 — 웹과 동일 서버, core·해석·가드레일 재사용(원칙 8). */
@@ -26,9 +63,10 @@ async function post<T>(path: string, body: unknown): Promise<T> {
 export async function createReport(birth: SajuInput): Promise<ReportPayload> {
   const res = await fetch(`${API_BASE}/api/report`, {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: await betaHeaders(),
     body: JSON.stringify({ birth, ctx: { season: "" } }),
   });
+  await guard(res);
   if (!res.ok) throw new Error("리포트를 만들지 못했어요.");
   return (await res.json()) as ReportPayload;
 }
@@ -39,9 +77,10 @@ export async function fetchReport(
 ): Promise<ReportPayload> {
   const res = await fetch(`${API_BASE}/api/report`, {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: await betaHeaders(),
     body: JSON.stringify({ token, ctx: { season: "", ...ctx } }),
   });
+  await guard(res);
   if (!res.ok) throw new Error("리포트를 불러오지 못했어요.");
   return (await res.json()) as ReportPayload;
 }

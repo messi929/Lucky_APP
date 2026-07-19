@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Btn, Card, Stamp } from "@/components/ui";
-import { loadBirth, loadToken } from "@/lib/storage";
+import { loadBeta, loadBirth, loadToken } from "@/lib/storage";
 import { color, FONT } from "@/lib/theme";
 
 /**
@@ -19,6 +19,11 @@ export default function Home() {
 
   useEffect(() => {
     (async () => {
+      // 초대 전용 베타: 자격 증명 없으면 게이트로
+      if (!(await loadBeta())) {
+        router.replace("/beta");
+        return;
+      }
       const birth = await loadBirth();
       if (!birth) {
         router.replace("/onboarding");

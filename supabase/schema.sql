@@ -73,6 +73,17 @@ create table if not exists concern_unlocks (
   primary key (token, concern)
 );
 
+-- 클로즈드 베타 초대 코드 (원칙 5: 가입 없음·토큰 접근)
+create table if not exists beta_codes (
+  code         text primary key,        -- 초대 코드 (고객별 발급)
+  note         text not null default '',-- 누구에게 준 코드인지 메모
+  max_uses     int not null default 1,  -- 다회용은 값 상향 (예: 1인 여러 기기)
+  used_count   int not null default 0,
+  revoked      boolean not null default false,
+  created_at   timestamptz not null default now(),
+  last_used_at timestamptz
+);
+
 -- 서버 전용 접근: RLS 켜고 정책 없음 (service role은 RLS 우회)
 alter table results         enable row level security;
 alter table invites         enable row level security;
@@ -83,3 +94,4 @@ alter table events          enable row level security;
 alter table push_tokens     enable row level security;
 alter table concern_unlocks enable row level security;
 alter table orders          enable row level security;
+alter table beta_codes      enable row level security;

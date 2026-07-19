@@ -9,6 +9,7 @@ import type { SajuInput } from "@lucky/core";
  */
 const BIRTH_KEY = "palja.birth";
 const TOKEN_KEY = "palja.token";
+const BETA_KEY = "palja.beta"; // 클로즈드 베타 자격 증명(서명값)
 
 async function setItem(key: string, value: string): Promise<void> {
   try {
@@ -63,4 +64,15 @@ export async function loadToken(): Promise<string | null> {
 export async function clearBirth(): Promise<void> {
   await removeItem(BIRTH_KEY);
   await removeItem(TOKEN_KEY);
+}
+
+// ── 클로즈드 베타 자격 (초대 코드 교환 결과) ──
+export async function saveBeta(cred: string): Promise<void> {
+  await setItem(BETA_KEY, cred);
+}
+export async function loadBeta(): Promise<string | null> {
+  return getItem(BETA_KEY);
+}
+export async function clearBeta(): Promise<void> {
+  await removeItem(BETA_KEY);
 }
