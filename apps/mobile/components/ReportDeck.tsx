@@ -247,9 +247,13 @@ export function ReportDeck({ initial }: { initial: ReportPayload }) {
         <View style={{ height: 6 }} />
         <Text style={[st.eyebrow, { letterSpacing: 1 }]}>2026 하반기 · {ilju}</Text>
         <View style={{ height: 20, gap: 6 }}>
+          {/* 색·방향은 무료(공유 자산). '올해의 한 가지'는 유료 세션 처방과 경쟁하므로 유료에서만. */}
           <RemedyRow label="당신의 색" value={c.remedy.colors.join(" · ")} />
           <RemedyRow label="좋은 방향" value={c.remedy.direction} />
-          <RemedyRow label="올해의 한 가지" value={c.remedy.oneThing} />
+          <RemedyRow
+            label="올해의 한 가지"
+            value={payload.paid ? c.remedy.oneThing : "고민 하나를 고르면, 그 주제로 처방해 드려요"}
+          />
         </View>
         <View style={st.grow} />
         <Btn label="이미지로 저장 · 스토리 9:16" variant="ink" />

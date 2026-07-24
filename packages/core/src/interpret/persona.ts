@@ -4,9 +4,11 @@
  */
 
 import { concernById, type GuardrailLevel } from "../content/concerns.js";
+import { ELEMENT_KO } from "../saju/constants.js";
+import { remedyFor } from "../content/remedies.js";
 import { toLlmContext } from "../saju/engine.js";
 import { DISCLAIMER } from "./guardrails.js";
-import { toneOf } from "./units.js";
+import { deriveFacts, toneOf } from "./units.js";
 import type { InterpretContext, InterpretationUnit, Mode, SajuChart, Tone } from "./types.js";
 
 /** 프롬프트 버전 — 화법/가드레일 변경 시 증가시켜 캐시 무효화(§4.3) */
@@ -85,7 +87,17 @@ function concernFor(unit: InterpretationUnit, ctx: InterpretContext): string {
 }
 
 /** 유닛별 사용자 프롬프트 지시문 */
-function unitInstruction(unit: InterpretationUnit, ctx: InterpretContext): string {
+/**
+ * 개운 처방(색·방향)은 **코어가 정하고 LLM은 서사만 쓴다**.
+ * 예전엔 지시문이 "색 또는 방향 하나를"이라고만 해서 LLM이 자유 생성 → 같은 화면의
+ * 결정론적 처방 카드와 색·방위가 어긋나는 사고가 있었다(초록·동쪽 vs 검은색·북쪽).
+ */
+function remedyDirective(chart: SajuChart): string {
+  const r = remedyFor(deriveFacts(chart).weakestElement);
+  return `이 사람의 보완 오행은 ${ELEMENT_KO[r.element]}이고, 처방 색은 '${r.colors.join("·")}', 길방은 '${r.direction}'입니다. 색과 방위는 반드시 이 값만 쓰고 다른 색·방위를 지어내지 마세요.`;
+}
+
+function unitInstruction(unit: InterpretationUnit, ctx: InterpretContext, chart?: SajuChart): string {
   const tone = toneOf(ctx);
   switch (unit.kind) {
     case "element_balance":
@@ -107,9 +119,9 @@ function unitInstruction(unit: InterpretationUnit, ctx: InterpretContext): strin
     case "session_timing":
       return "[상담 시기] 그 흐름이 열리고 닫히는 '때'를 말하세요. 특정 연도나 구간(예: 2027~2028)은 제시하되 '반드시/틀림없이' 류 단정은 금지 — '기운이 열리는 구간' 수준의 관망 언어로. 1~2문장.";
     case "session_remedy":
-      return "[상담 처방] 그때까지 어떻게 지내면 좋은지 — 태도 하나 + 개운(색 또는 방향) 하나를 처방으로. '~하세요' 명령형으로 담백하게. 2문장 이내.";
+      return `[상담 처방] 그때까지 어떻게 지내면 좋은지 — 태도 하나 + 개운 하나를 처방으로. '~하세요' 명령형으로 담백하게. 2문장 이내.${chart ? ` ${remedyDirective(chart)}` : ""}`;
     case "caution":
-      return "가장 부족한 오행을 근거로, 올 하반기 '조심할 것' 하나를 '주의 + 대처' 프레임으로 알려 주세요. 겁주지 말고 대처 위주로.";
+      return `가장 부족한 오행을 근거로, 올 하반기 '조심할 것' 하나를 '주의 + 대처' 프레임으로 알려 주세요. 겁주지 말고 대처 위주로.${chart ? ` ${remedyDirective(chart)}` : ""}`;
     default:
       return "제시된 원국 데이터를 근거로 해석해 주세요.";
   }
@@ -124,6 +136,6 @@ export function buildPrompt(
   const system = modeOf(ctx) === "classic" ? PERSONA_CLASSIC : PERSONA_MZ;
   const context = toLlmContext(chart);
   const guardrail = guardrailDirective(unit.guardrailLevel);
-  const user = [context, "", unitInstruction(unit, ctx), guardrail].filter(Boolean).join("\n");
+  const user = [context, "", unitInstruction(unit, ctx, chart), guardrail].filter(Boolean).join("\n");
   return { system, user };
 }

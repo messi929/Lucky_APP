@@ -4,7 +4,7 @@
  */
 
 import { concernById, type ConcernId } from "../content/concerns.js";
-import type { Element } from "../saju/constants.js";
+import { STEMS, type Element } from "../saju/constants.js";
 import {
   SESSION_BEATS,
   type InterpretContext,
@@ -45,7 +45,6 @@ export function deriveFacts(chart: SajuChart): DerivedFacts {
     ["금", "metal"],
     ["수", "water"],
   ];
-  let weakest: Element = "wood";
   let strongest: Element = "wood";
   let min = Infinity;
   let max = -Infinity;
@@ -53,15 +52,17 @@ export function deriveFacts(chart: SajuChart): DerivedFacts {
   for (const [ko, el] of order) {
     const v = fe[ko] ?? 0;
     sig += `${ko}${v}`;
-    if (v < min) {
-      min = v;
-      weakest = el;
-    }
+    if (v < min) min = v;
     if (v > max) {
       max = v;
       strongest = el;
     }
   }
+  // 최소값 동점은 흔하다(0이 둘 이상인 원국). 고정 순서로 앞선 원소를 뽑으면
+  // 목→화→토→금→수 순으로 늘 앞엣것이 이겨 처방이 엉뚱해진다.
+  // 동점일 때만 ssaju가 판정한 용신(천간)으로 가른다 — 판단을 새로 만들지 않고 라이브러리 판정을 좁게 빌린다.
+  const tied = order.filter(([ko]) => (fe[ko] ?? 0) === min).map(([, el]) => el);
+  const weakest = tied.length === 1 ? tied[0]! : breakTie(tied, chart);
   void KO_TO_ELEMENT;
 
   return {
@@ -75,6 +76,29 @@ export function deriveFacts(chart: SajuChart): DerivedFacts {
     strongestElement: strongest,
     elementSignature: sig,
   };
+}
+
+/** 천간 한자 → 오행 (甲乙=목 … 壬癸=수) */
+const STEM_HANJA_TO_ELEMENT: Record<string, Element> = Object.fromEntries(
+  STEMS.map((s) => [s.hanja, s.element]),
+);
+
+/**
+ * 최소 오행 동점 해소. ssaju `advanced.yongsin`(용신 천간)이 가리키는 오행이
+ * 동점 후보에 있으면 그걸 택한다. 없으면 ELEMENT_ORDER 고정 순서(결정론 보장).
+ *
+ * ⚠️ 용신 운용은 유파 차이가 크다. 여기서는 "처방 오행을 새로 판정"하지 않고
+ * **이미 동점이라 어차피 임의로 골라야 하는 자리**에서만 참고한다. 전면 채택은 명리 감수 후.
+ */
+function breakTie(tied: Element[], chart: SajuChart): Element {
+  const yongsin = chart.saju?.advanced?.yongsin;
+  if (Array.isArray(yongsin)) {
+    for (const stem of yongsin) {
+      const el = STEM_HANJA_TO_ELEMENT[stem];
+      if (el && tied.includes(el)) return el;
+    }
+  }
+  return tied[0]!;
 }
 
 export function toneOf(ctx: InterpretContext): Tone {

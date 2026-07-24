@@ -161,4 +161,21 @@ export interface CheckoutRequest {
   fromMsg?: string;
 }
 
+/**
+ * 기기에 보관하는 "봐준 사람" 명부 항목 (웹=localStorage / 앱=SecureStore).
+ * 계정이 아니라 기기 로컬 목록이다 — 원칙 5(회원가입 금지) 유지.
+ * 본인은 `self: true` 하나만 존재하며, 타인 사주는 각자 독립 토큰을 가진다.
+ */
+export interface StoredPerson {
+  token: ResultToken;
+  /** 호칭 (선택). "엄마", "동생" 등. 비우면 UI가 생년으로 대체 표기 */
+  alias?: string;
+  /** 본인 여부 — 명부 최상단 고정, 삭제 불가 */
+  self?: boolean;
+  /** 목록 표기·정렬용 (YYYY-MM-DD) */
+  birthDate: string;
+  /** 추가 시각 (ms epoch) */
+  addedAt: number;
+}
+
 export type { SajuInput };

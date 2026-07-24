@@ -195,7 +195,15 @@ function buildCards(
           <p className="sub">— {p.concern.label}, 여기까지 봤어요.</p>
         </div>
       ),
-      action: <button className="btn ink" onClick={() => router.push(nextHref(p))}>이어서, 다음이 궁금해요</button>,
+      action: (
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <button className="btn ink" onClick={() => router.push(nextHref(p))}>
+            {p.next ? `이어서 — ${p.next.label}` : "이어서, 다음이 궁금해요"}
+          </button>
+          <button className="btn ghost" onClick={() => router.push(`/s/${p.token}`)}>다른 고민 고르기</button>
+          <button className="btn ghost" onClick={() => router.push("/p/new")}>다른 사람 사주 보기</button>
+        </div>
+      ),
     });
   } else {
     cards.push({
@@ -233,6 +241,7 @@ function buildCards(
 
 function nextHref(p: SessionPayload): string {
   if (p.next?.concern) return `/s/${p.token}/${p.next.concern}`;
-  if (p.next?.sku === "taekil") return "/vertical/taekil";
+  // 택일은 ?token= 필수 — 없으면 "먼저 사주를 봐야 해요"로 떨어져 재입력을 강요당한다.
+  if (p.next?.sku === "taekil") return `/vertical/taekil?token=${p.token}`;
   return `/s/${p.token}`;
 }

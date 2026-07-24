@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as SecureStore from "expo-secure-store";
+import type { StoredPerson } from "@lucky/api-client";
 import type { SajuInput } from "@lucky/core";
 
 /**
@@ -64,6 +65,45 @@ export async function loadToken(): Promise<string | null> {
 export async function clearBirth(): Promise<void> {
   await removeItem(BIRTH_KEY);
   await removeItem(TOKEN_KEY);
+}
+
+// ── "봐준 사람" 명부 (타인 사주) ──
+// 본인 토큰(TOKEN_KEY)은 건드리지 않는다. 타인은 각자 독립 토큰이라 내 상담과 완전히 분리된다.
+const PEOPLE_KEY = "palja.people";
+const MAX_PEOPLE = 12;
+
+export async function listPeople(): Promise<StoredPerson[]> {
+  const raw = await getItem(PEOPLE_KEY);
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw) as StoredPerson[];
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((p) => typeof p?.token === "string").sort((a, b) => b.addedAt - a.addedAt);
+  } catch {
+    await removeItem(PEOPLE_KEY);
+    return [];
+  }
+}
+
+export async function rememberPerson(p: Omit<StoredPerson, "addedAt">): Promise<void> {
+  const next = [
+    { ...p, addedAt: Date.now() },
+    ...(await listPeople()).filter((x) => x.token !== p.token),
+  ].slice(0, MAX_PEOPLE);
+  await setItem(PEOPLE_KEY, JSON.stringify(next));
+}
+
+export async function findPerson(token: string): Promise<StoredPerson | null> {
+  return (await listPeople()).find((p) => p.token === token) ?? null;
+}
+
+export async function forgetPerson(token: string): Promise<void> {
+  await setItem(PEOPLE_KEY, JSON.stringify((await listPeople()).filter((p) => p.token !== token)));
+}
+
+/** 목록 표기용 이름 — 호칭 없으면 생년으로 대체 */
+export function personLabel(p: StoredPerson): string {
+  return p.alias?.trim() || `${p.birthDate.slice(0, 4)}년생`;
 }
 
 // ── 클로즈드 베타 자격 (초대 코드 교환 결과) ──

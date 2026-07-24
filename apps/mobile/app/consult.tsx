@@ -1,10 +1,10 @@
 import { CONCERN_HUB, concernsForAge, type ConcernId } from "@lucky/core";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Stamp } from "@/components/ui";
-import { loadBirth, loadToken } from "@/lib/storage";
+import { findPerson, loadBirth, loadToken, personLabel } from "@/lib/storage";
 import { color, FONT } from "@/lib/theme";
 
 /**
@@ -19,22 +19,40 @@ function ageFrom(birthDate: string): number {
 
 export default function ConsultHub() {
   const insets = useSafeAreaInsets();
+  // token 파라미터가 있으면 "타인 사주" 상담 — 없으면 본인(기기 저장 토큰).
+  const { token: paramToken } = useLocalSearchParams<{ token?: string }>();
   const [ready, setReady] = useState(false);
   const [concerns, setConcerns] = useState<{ id: ConcernId; label: string }[]>([]);
+  const [who, setWho] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
+      if (paramToken) {
+        const person = await findPerson(paramToken);
+        if (!person) {
+          // 명부에 없는 토큰(기기 초기화 등) → 본인 상담으로 되돌린다
+          router.replace("/consult");
+          return;
+        }
+        setWho(personLabel(person));
+        setConcerns(
+          concernsForAge(ageFrom(person.birthDate), 6).map((c) => ({ id: c.id, label: c.label })),
+        );
+        setReady(true);
+        return;
+      }
       const birth = await loadBirth();
       const token = await loadToken();
       if (!birth || !token) {
         router.replace("/onboarding");
         return;
       }
+      setWho(null);
       const list = concernsForAge(ageFrom(birth.birthDate), 6).map((c) => ({ id: c.id, label: c.label }));
       setConcerns(list);
       setReady(true);
     })();
-  }, []);
+  }, [paramToken]);
 
   if (!ready) {
     return (
@@ -48,17 +66,23 @@ export default function ConsultHub() {
     <ScrollView style={s.fill} contentContainerStyle={{ padding: 24, paddingTop: insets.top + 24, paddingBottom: insets.bottom + 32 }}>
       <View style={s.hstack}>
         <Stamp char="問" size={30} />
-        <Text style={s.eyebrow}>오늘의 상담</Text>
+        <Text style={s.eyebrow}>{who ? `${who}의 상담` : "오늘의 상담"}</Text>
       </View>
       <View style={{ height: 16 }} />
-      <Text style={s.h}>그래서 — 오늘,{"\n"}뭐가 제일 궁금해요?</Text>
+      <Text style={s.h}>
+        {who ? `${who} 사주,\n뭐가 제일 궁금해요?` : "그래서 — 오늘,\n뭐가 제일 궁금해요?"}
+      </Text>
       <View style={{ height: 8 }} />
       <Text style={s.sub}>하나만 골라요. 그 주제로 끝까지 봐줄게요.</Text>
 
       <View style={{ height: 22 }} />
       <View style={s.grid}>
         {concerns.map((c) => (
-          <Pressable key={c.id} style={s.tile} onPress={() => router.push(`/session/${c.id}`)}>
+          <Pressable
+            key={c.id}
+            style={s.tile}
+            onPress={() => router.push(paramToken ? `/session/${c.id}?token=${paramToken}` : `/session/${c.id}`)}
+          >
             <Text style={s.tHanja}>{CONCERN_HUB[c.id].hanja}</Text>
             <Text style={s.tLabel}>{c.label}</Text>
             <Text style={s.tSub}>{CONCERN_HUB[c.id].sub}</Text>
@@ -68,6 +92,17 @@ export default function ConsultHub() {
 
       <View style={{ height: 18 }} />
       <Text style={s.fine}>한 번에 다 안 봐도 괜찮아요. 궁금할 때 하나씩 — 그게 상담이에요.</Text>
+
+      <View style={{ height: 18 }} />
+      <View style={s.divider} />
+      <Pressable onPress={() => router.push("/person/new")} style={{ paddingVertical: 12 }}>
+        <Text style={s.otherLink}>다른 사람 사주 보기 →</Text>
+      </Pressable>
+      {who && (
+        <Pressable onPress={() => router.replace("/consult")} style={{ paddingVertical: 4 }}>
+          <Text style={s.otherLink}>← 내 상담으로 돌아가기</Text>
+        </Pressable>
+      )}
     </ScrollView>
   );
 }
@@ -85,4 +120,6 @@ const s = StyleSheet.create({
   tLabel: { fontFamily: FONT.sansBold, fontSize: 16, color: color.ink },
   tSub: { fontFamily: FONT.sans, fontSize: 11.5, color: color.inkMuted },
   fine: { fontFamily: FONT.sans, fontSize: 12, color: color.inkMuted, textAlign: "center", lineHeight: 18 },
+  divider: { height: 1, backgroundColor: color.hanjiDeep },
+  otherLink: { fontFamily: FONT.sansMedium, fontSize: 13.5, color: color.inkSoft, textAlign: "center" },
 });

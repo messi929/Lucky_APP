@@ -85,6 +85,16 @@ export default async function ConsultHubPage({
       <p style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--ink-40)", textAlign: "center", lineHeight: 1.5 }}>
         한 번에 다 안 봐도 괜찮아요. 궁금할 때 하나씩 — 그게 상담이에요.
       </p>
+
+      <div style={{ height: 18 }} />
+      <div style={{ borderTop: "1px solid var(--paper-dk)", paddingTop: 14, textAlign: "center" }}>
+        <Link
+          href="/p/new"
+          style={{ fontFamily: "var(--sans)", fontSize: 13.5, fontWeight: 600, color: "var(--ink-70)", textDecoration: "none" }}
+        >
+          다른 사람 사주 보기 →
+        </Link>
+      </div>
     </main>
   );
 }

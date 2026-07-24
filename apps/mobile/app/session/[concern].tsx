@@ -25,7 +25,8 @@ const BEAT_EYEBROW: Record<string, string> = {
 type Beat = SessionPayload["beats"][number];
 
 export default function Session() {
-  const { concern } = useLocalSearchParams<{ concern: string }>();
+  // token 파라미터가 있으면 타인 사주 상담 — 없으면 본인(기기 저장 토큰).
+  const { concern, token: paramToken } = useLocalSearchParams<{ concern: string; token?: string }>();
   const insets = useSafeAreaInsets();
   const [payload, setPayload] = useState<SessionPayload | null>(null);
   const [err, setErr] = useState("");
@@ -33,7 +34,7 @@ export default function Session() {
 
   useEffect(() => {
     (async () => {
-      const token = await loadToken();
+      const token = paramToken ?? (await loadToken());
       if (!token) {
         router.replace("/onboarding");
         return;
@@ -45,9 +46,9 @@ export default function Session() {
         setErr((e as Error).message);
       }
     })();
-  }, [concern]);
+  }, [concern, paramToken]);
 
-  const cards = useMemo<CardItem[]>(() => (payload ? buildCards(payload) : []), [payload]);
+  const cards = useMemo<CardItem[]>(() => (payload ? buildCards(payload, paramToken) : []), [payload, paramToken]);
 
   const goNext = useCallback(() => setIndex((i) => Math.min(i + 1, cards.length - 1)), [cards.length]);
 
@@ -56,7 +57,11 @@ export default function Session() {
       <View style={[st.fill, st.center, { padding: 24 }]}>
         <Text style={st.sub}>{err}</Text>
         <View style={{ height: 16 }} />
-        <Btn label="상담 허브로" variant="ink" onPress={() => router.replace("/consult")} />
+        <Btn
+          label="상담 허브로"
+          variant="ink"
+          onPress={() => router.replace(paramToken ? `/consult?token=${paramToken}` : "/consult")}
+        />
       </View>
     );
   }
@@ -102,7 +107,10 @@ export default function Session() {
 
 type CardItem = { key: string; node: ReactNode; action?: ReactNode };
 
-function buildCards(p: SessionPayload): CardItem[] {
+function buildCards(p: SessionPayload, personToken?: string): CardItem[] {
+  /** 타인 상담이면 이동 경로마다 token을 물고 다녀야 본인 상담으로 새지 않는다. */
+  const q = personToken ? `?token=${personToken}` : "";
+  const hubHref = `/consult${q}`;
   const byKind = (k: string): Beat | undefined => p.beats.find((b) => b.kind === k);
   const diagnosis = byKind("session_diagnosis");
   const cards: CardItem[] = [];
@@ -194,7 +202,17 @@ function buildCards(p: SessionPayload): CardItem[] {
           <Text style={[st.sub, { textAlign: "center" }]}>— {p.concern.label}, 여기까지 봤어요.</Text>
         </View>
       ),
-      action: <Btn label="이어서, 다음이 궁금해요" variant="ink" onPress={() => router.replace(nextHref(p))} />,
+      action: (
+        <View style={{ gap: 8 }}>
+          <Btn
+            label={p.next ? `이어서 — ${p.next.label}` : "이어서, 다음이 궁금해요"}
+            variant="ink"
+            onPress={() => router.replace(nextHref(p, q))}
+          />
+          <Btn label="다른 고민 고르기" variant="ghost" onPress={() => router.replace(hubHref)} />
+          <Btn label="다른 사람 사주 보기" variant="ghost" onPress={() => router.push("/person/new")} />
+        </View>
+      ),
     });
   } else {
     // 무료: 진단 후 주제 단위 해금
@@ -226,7 +244,7 @@ function buildCards(p: SessionPayload): CardItem[] {
       action: (
         <View style={{ gap: 8 }}>
           <Btn label="동의하고 열기 · 990원" variant="gold" onPress={() => router.push("/subscribe")} />
-          <Btn label="다른 고민부터 볼래요" variant="ghost" onPress={() => router.replace("/consult")} />
+          <Btn label="다른 고민부터 볼래요" variant="ghost" onPress={() => router.replace(hubHref)} />
         </View>
       ),
     });
@@ -235,10 +253,12 @@ function buildCards(p: SessionPayload): CardItem[] {
   return cards;
 }
 
-function nextHref(p: SessionPayload): string {
-  if (p.next?.concern) return `/session/${p.next.concern}`;
-  if (p.next?.sku === "taekil") return "/vertical/taekil";
-  return "/consult";
+function nextHref(p: SessionPayload, q: string): string {
+  if (p.next?.concern) return `/session/${p.next.concern}${q}`;
+  // 택일은 본인 기기 토큰 기준 화면 — 타인 상담에서는 허브로 되돌린다.
+  if (p.next?.sku === "taekil" && !q) return "/vertical/taekil";
+  if (p.next?.sku === "taekil") return `/consult${q}`;
+  return `/consult${q}`;
 }
 
 const st = StyleSheet.create({

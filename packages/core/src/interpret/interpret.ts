@@ -7,13 +7,13 @@
 
 import { dayMasterByStemIdx } from "../content/characters.js";
 import { iljuHook } from "../content/hooks.js";
-import { remedyFor, type Remedy } from "../content/remedies.js";
+import { remedyConflicts, remedyFor, type Remedy } from "../content/remedies.js";
 import type { Element } from "../saju/constants.js";
 import type { ConcernId } from "../content/concerns.js";
 import { cacheKeyOf } from "./cache-key.js";
 import { applyGuardrails, DISCLAIMER, DISCLAIMER_CLASSIC } from "./guardrails.js";
 import { buildPrompt, modeOf, PROMPT_VERSION } from "./persona.js";
-import { decomposeSessionUnits, decomposeUnits } from "./units.js";
+import { decomposeSessionUnits, decomposeUnits, deriveFacts } from "./units.js";
 import type {
   InterpretContext,
   InterpretDeps,
@@ -103,6 +103,14 @@ function resolveRule(unit: InterpretationUnit): ResolvedUnit {
   };
 }
 
+/** 개운 색·방위를 언급하는 유닛만 정합성 검사 대상 (나머지는 항상 통과) */
+const REMEDY_BEARING = new Set(["session_remedy", "caution"]);
+
+function remedyConsistent(text: string, unit: InterpretationUnit, chart: SajuChart): boolean {
+  if (!REMEDY_BEARING.has(unit.kind)) return true;
+  return remedyConflicts(text, deriveFacts(chart).weakestElement).length === 0;
+}
+
 function formatRemedy(r: Remedy): string {
   return `색은 ${r.colors.join("·")}, 길방은 ${r.direction}이에요. ${r.habits[0]}. 올해의 한 가지 — ${r.oneThing}`;
 }
@@ -123,12 +131,16 @@ async function resolveLlm(
   const tier = ctx.paid ? "paid" : "free";
   const level = unit.guardrailLevel;
 
-  // 생성 → 가드레일(유닛 단계). 위반 시 1회 재생성, 그래도 실패면 안전 폴백.
+  // 가드레일 + 처방 정합성(색·방위 단일 소스)을 함께 통과해야 채택.
+  const accepts = (t: string): boolean =>
+    applyGuardrails(t, level).ok && remedyConsistent(t, unit, chart);
+
+  // 생성 → 검증. 위반 시 1회 재생성, 그래도 실패면 안전 폴백.
   let text = await deps.generate(prompt, { kind: unit.kind, tier });
   let guardrailFallback = false;
-  if (!applyGuardrails(text, level).ok) {
+  if (!accepts(text)) {
     text = await deps.generate(prompt, { kind: unit.kind, tier });
-    if (!applyGuardrails(text, level).ok) {
+    if (!accepts(text)) {
       text = SAFE_FALLBACK[unit.kind] ?? "지금은 준비의 시기예요. 한 걸음씩 가세요.";
       guardrailFallback = true;
     }

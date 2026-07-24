@@ -248,9 +248,15 @@ export function ReportDeck({ initial }: { initial: ReportPayload }) {
         <div className="eyebrow" style={{ letterSpacing: "0.1em" }}>2026 하반기 · {ilju}</div>
         <div style={{ height: 20 }} />
         <div className="vstack" style={{ gap: 6 }}>
+          {/* 색·방향은 무료 — 스샷/공유 자산(전파 경로)이라 남긴다.
+              '올해의 한 가지'(구체적 행동 처방)는 유료 세션 처방 비트와 직접 경쟁하므로 유료에서만. */}
           <RemedyRow label="당신의 색" value={c.remedy.colors.join(" · ")} />
           <RemedyRow label="좋은 방향" value={c.remedy.direction} />
-          <RemedyRow label="올해의 한 가지" value={c.remedy.oneThing} />
+          {payload.paid ? (
+            <RemedyRow label="올해의 한 가지" value={c.remedy.oneThing} />
+          ) : (
+            <RemedyRow label="올해의 한 가지" value="고민 하나를 고르면, 그 주제로 처방해 드려요" />
+          )}
         </div>
         <div className="grow" />
         <div className="fine" style={{ letterSpacing: "0.1em" }}>팔자 리포트 · paljareport.com</div>

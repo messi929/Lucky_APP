@@ -16,6 +16,7 @@ import {
   interpretSession,
   pivotFor,
   PROMPT_VERSION,
+  remedyConflicts,
   SESSION_BEATS,
   type CacheStore,
   type GenerateFn,
@@ -248,5 +249,123 @@ describe("마무리 꺾는 문장 (pivotFor — concern별 authored)", () => {
       const line = pivotFor(id)!;
       expect(line).not.toMatch(/암|질병|수술|죽|이혼/);
     }
+  });
+});
+
+describe("개운 처방 오행 선정 (weakestElement 동점 처리)", () => {
+  /** 최소값이 여럿인 원국에서 remedy 유닛이 고른 오행 */
+  function remedyElement(birth: SajuInput): string {
+    const chart = computeSaju(birth);
+    const unit = decomposeUnits(chart, { season: "2026H2" }).find((u) => u.kind === "remedy");
+    expect(unit, "remedy 유닛 없음").toBeTruthy();
+    return String(unit!.value);
+  }
+
+  it("동점(목0·수0)일 때 고정 순서로 앞선 목을 뽑지 않는다 — 용신으로 가른다", () => {
+    // 1958-07-02 09:20 서울: {목0 화1 토5 금2 수0} · yongsin ["己","丙","癸"] → 癸=수
+    // 수정 전에는 목화토금수 순회에서 목0이 min을 선점해 항상 wood가 나왔다.
+    const chart = computeSaju({
+      birthDate: "1958-07-02",
+      birthTime: "09:20",
+      gender: "female",
+      birthRegion: "SEOUL",
+      calendarType: "solar",
+      unknownTime: false,
+    });
+    const fe = chart.saju.fiveElements as Record<string, number>;
+    expect(fe["목"], "전제: 목이 최소여야 동점 상황").toBe(0);
+    expect(fe["수"], "전제: 수도 같은 최소여야 동점 상황").toBe(0);
+
+    const unit = decomposeUnits(chart, { season: "2026H2" }).find((u) => u.kind === "remedy");
+    expect(unit!.value).toBe("water");
+  });
+
+  it("동점이 아니면 최소 오행을 그대로 고른다", () => {
+    // 1990-03-15 14:30 서울: {목2 화1 토3 금2 수0} → 수 단독 최소
+    expect(
+      remedyElement({
+        birthDate: "1990-03-15",
+        birthTime: "14:30",
+        gender: "male",
+        birthRegion: "SEOUL",
+        calendarType: "solar",
+        unknownTime: false,
+      }),
+    ).toBe("water");
+  });
+
+  it("같은 입력은 항상 같은 처방 오행 (결정론 — 재현성)", () => {
+    const birth: SajuInput = {
+      birthDate: "1958-07-02",
+      birthTime: "09:20",
+      gender: "female",
+      birthRegion: "SEOUL",
+      calendarType: "solar",
+      unknownTime: false,
+    };
+    const runs = new Set([remedyElement(birth), remedyElement(birth), remedyElement(birth)]);
+    expect(runs.size).toBe(1);
+  });
+});
+
+describe("처방 정합성 — 색·방위 단일 소스 (B3)", () => {
+  const chart = computeSaju({
+    birthDate: "1958-07-02",
+    birthTime: "09:20",
+    gender: "female",
+    birthRegion: "SEOUL",
+    calendarType: "solar",
+    unknownTime: false,
+  });
+
+  it("처방 오행 본인의 색·방위는 충돌로 보지 않는다", () => {
+    expect(remedyConflicts("검은색 소품을 두고 북쪽을 보고 앉으세요.", "water")).toEqual([]);
+  });
+
+  it("다른 오행의 색·방위가 섞이면 충돌로 잡는다", () => {
+    // 실제로 났던 사고: 처방은 water인데 서사가 초록·동쪽을 말함
+    expect(remedyConflicts("초록색 화분을 동쪽에 두세요.", "water")).toContain("wood");
+  });
+
+  it("표기 변형(검정/검은색)도 잡는다", () => {
+    expect(remedyConflicts("흰색 옷을 입고 서쪽으로", "water")).toContain("metal");
+  });
+
+  it("세션 처방 프롬프트에 코어 처방값이 주입된다 (LLM 자유생성 차단)", async () => {
+    let user = "";
+    const generate: GenerateFn = async (p) => {
+      user = p.user;
+      return "마음의 여백을 두세요.";
+    };
+    await interpretSession(chart, "health_year", { season: "2026H2", paid: true }, { generate });
+    // 마지막 비트가 session_remedy — 지시문에 색·방위가 박혀 있어야 한다
+    expect(user).toMatch(/처방 색은/);
+    expect(user).toMatch(/지어내지 마세요/);
+  });
+
+  it("색·방위가 어긋난 생성물은 채택되지 않는다 (재생성 → 폴백)", async () => {
+    let calls = 0;
+    // 처방은 water인데 계속 초록·동쪽을 말하는 모델
+    const generate: GenerateFn = async () => {
+      calls += 1;
+      return "초록색 소품을 동쪽에 두세요.";
+    };
+    const r = await interpretSession(chart, "health_year", { season: "2026H2", paid: true }, { generate });
+    const remedyBeat = r.beats.find((b) => b.kind === "session_remedy")!;
+    expect(calls).toBeGreaterThan(1); // 1회 재생성 시도
+    expect(remedyBeat.text).not.toMatch(/초록|동쪽/); // 폴백으로 대체
+  });
+});
+
+describe("처방 어휘 오탐 방지 (부분문자열 충돌)", () => {
+  it("'검은색'의 '은색'을 금(metal)으로 오인하지 않는다", () => {
+    expect(remedyConflicts("검은색 소품", "water")).toEqual([]);
+  });
+  it("독립된 '은색'은 여전히 금으로 잡는다", () => {
+    expect(remedyConflicts("은색 액세서리", "water")).toContain("metal");
+  });
+  it("'남색'(수)과 '남쪽'(화)을 혼동하지 않는다", () => {
+    expect(remedyConflicts("남색 옷", "water")).toEqual([]);
+    expect(remedyConflicts("남쪽으로", "water")).toContain("fire");
   });
 });
