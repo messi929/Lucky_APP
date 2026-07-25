@@ -1,4 +1,4 @@
-import { CONCERN_HUB, concernsForAge, type ConcernId } from "@lucky/core";
+import { CONCERN_HUB, concernsForAge, seasonHook, seasonPhase, type ConcernId } from "@lucky/core";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
@@ -15,6 +15,18 @@ import { color, FONT } from "@/lib/theme";
 function ageFrom(birthDate: string): number {
   const y = Number(birthDate.slice(0, 4));
   return new Date().getFullYear() - y;
+}
+
+/** 절기 전환 재방문 훅 (A5) — 전환 직후·임박일 때만. */
+function SeasonStrip() {
+  const phase = seasonPhase(new Date());
+  if (!phase.justTurned && !phase.turningSoon) return null;
+  return (
+    <View style={s.season}>
+      <Text style={s.seasonLabel}>절기 · {phase.currentTerm}</Text>
+      <Text style={s.seasonBody}>{seasonHook(phase)}</Text>
+    </View>
+  );
 }
 
 export default function ConsultHub() {
@@ -68,6 +80,9 @@ export default function ConsultHub() {
         <Stamp char="問" size={30} />
         <Text style={s.eyebrow}>{who ? `${who}의 상담` : "오늘의 상담"}</Text>
       </View>
+
+      <SeasonStrip />
+
       <View style={{ height: 16 }} />
       <Text style={s.h}>
         {who ? `${who} 사주,\n뭐가 제일 궁금해요?` : "그래서 — 오늘,\n뭐가 제일 궁금해요?"}
@@ -122,4 +137,17 @@ const s = StyleSheet.create({
   fine: { fontFamily: FONT.sans, fontSize: 12, color: color.inkMuted, textAlign: "center", lineHeight: 18 },
   divider: { height: 1, backgroundColor: color.hanjiDeep },
   otherLink: { fontFamily: FONT.sansMedium, fontSize: 13.5, color: color.inkSoft, textAlign: "center" },
+  season: {
+    marginTop: 14,
+    borderWidth: 1,
+    borderColor: color.hanjiDeep,
+    borderLeftWidth: 3,
+    borderLeftColor: color.gold,
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    backgroundColor: color.white,
+  },
+  seasonLabel: { fontFamily: FONT.sansMedium, fontSize: 11, letterSpacing: 2, color: color.gold, marginBottom: 4 },
+  seasonBody: { fontFamily: FONT.sans, fontSize: 13.5, color: color.inkSoft, lineHeight: 20 },
 });

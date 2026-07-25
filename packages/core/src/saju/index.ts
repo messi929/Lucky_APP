@@ -26,6 +26,7 @@ export {
   findEnclosingMajorTerms,
   MAJOR_TERMS,
 } from "./astro.js";
+export { seasonPhase, seasonHook, type SeasonPhase } from "./season.js";
 
 // 도메인 상수(UI 오행 색상 등). ssaju 결과와 병행 사용 가능.
 export {

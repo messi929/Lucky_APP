@@ -1,4 +1,4 @@
-import { CONCERN_HUB, concernsForAge } from "@lucky/core";
+import { CONCERN_HUB, concernsForAge, seasonHook, seasonPhase } from "@lucky/core";
 import Link from "next/link";
 import { Stamp } from "@/components/ui";
 import { ageFromBirth } from "@/lib/age";
@@ -32,6 +32,9 @@ export default async function ConsultHubPage({
   }
 
   const concerns = concernsForAge(ageFromBirth(input.birthDate), 6);
+  // 절기 전환 재방문 훅 (A5) — 전환 직후·임박일 때만 노출. 스탬프는 問 하나(화면당 1개 원칙).
+  const phase = seasonPhase(new Date());
+  const showSeason = phase.justTurned || phase.turningSoon;
 
   return (
     <main className="screen" style={{ paddingBottom: 40 }}>
@@ -41,6 +44,28 @@ export default async function ConsultHubPage({
           오늘의 상담
         </span>
       </div>
+
+      {showSeason && (
+        <>
+          <div style={{ height: 14 }} />
+          <div
+            style={{
+              border: "1px solid var(--paper-dk)",
+              borderLeft: "3px solid var(--gold)",
+              borderRadius: 12,
+              padding: "12px 14px",
+              background: "var(--white, #fff)",
+            }}
+          >
+            <div style={{ fontSize: 11, letterSpacing: "0.2em", color: "var(--gold)", fontWeight: 600, marginBottom: 4 }}>
+              절기 · {phase.currentTerm}
+            </div>
+            <div style={{ fontFamily: "var(--sans)", fontSize: 13.5, color: "var(--ink-70)", lineHeight: 1.5 }}>
+              {seasonHook(phase)}
+            </div>
+          </div>
+        </>
+      )}
 
       <div style={{ height: 18 }} />
       <h1 style={{ fontFamily: "var(--serif)", fontWeight: 900, fontSize: 29, lineHeight: 1.4, color: "var(--ink)" }}>
