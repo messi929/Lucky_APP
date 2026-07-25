@@ -8,6 +8,7 @@ import { BrushIntro } from "./BrushIntro";
 import { CompatInvite } from "./CompatInvite";
 import { ElementChart } from "./ElementChart";
 import { ModeToggle } from "./ModeToggle";
+import { RetroCard } from "./RetroCard";
 import { Dots, InkCircle, Stamp } from "./ui";
 import { track } from "@/lib/track";
 
@@ -135,6 +136,16 @@ export function ReportDeck({ initial }: { initial: ReportPayload }) {
         <div className="grow" />
         <Dots total={7} active={2} />
       </section>
+
+      {/* 과거 검증 (신뢰 방아쇠) — 타입 다음, 반응 체크 앞. 프로브 없으면 건너뜀 */}
+      {payload.retro.length > 0 && (
+        <section className="screen">
+          <div className="grow" />
+          <RetroCard token={payload.token} probes={payload.retro} />
+          <div className="grow" />
+          <Dots total={7} active={2} />
+        </section>
+      )}
 
       {/* 반응 체크 (R-반응) */}
       <section className="screen center">

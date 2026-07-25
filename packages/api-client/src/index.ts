@@ -73,6 +73,18 @@ export interface ReportPayload {
   paid: boolean;
   /** 오늘의 한 줄 (§10.1) */
   daily: { line: string; todayGanji: string };
+  /** 과거 검증 프로브 (신뢰 방아쇠). 대운 전환 기반 질문형, LLM 0. 비어 있을 수 있음 */
+  retro: RetroProbeView[];
+}
+
+/** 과거 검증 프로브 뷰 (payload용 — 연도는 표시 전용, LLM 미전달) */
+export interface RetroProbeView {
+  pivotYear: number;
+  fromYear: number;
+  toYear: number;
+  age: number;
+  /** 질문형 문장 (구간 라벨 제외 — 클라이언트가 조합) */
+  question: string;
 }
 
 // ── 상담 세션 (concern 1개 집중: 진단→근거→시기→처방) ──

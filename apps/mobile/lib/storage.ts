@@ -106,6 +106,24 @@ export function personLabel(p: StoredPerson): string {
   return p.alias?.trim() || `${p.birthDate.slice(0, 4)}년생`;
 }
 
+// ── 과거 검증 응답 (retro 카드) ──
+// 기기 로컬. 토큰별 { pivotYear: "yes"|"no" }.
+type RetroAnswers = Record<number, "yes" | "no">;
+
+export async function loadRetro(token: string): Promise<RetroAnswers> {
+  const raw = await getItem(`palja.retro.${token}`);
+  if (!raw) return {};
+  try {
+    return JSON.parse(raw) as RetroAnswers;
+  } catch {
+    return {};
+  }
+}
+
+export async function saveRetro(token: string, answers: RetroAnswers): Promise<void> {
+  await setItem(`palja.retro.${token}`, JSON.stringify(answers));
+}
+
 // ── 클로즈드 베타 자격 (초대 코드 교환 결과) ──
 export async function saveBeta(cred: string): Promise<void> {
   await setItem(BETA_KEY, cred);

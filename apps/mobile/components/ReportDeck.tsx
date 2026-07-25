@@ -18,6 +18,7 @@ import { color, FONT } from "@/lib/theme";
 import { fetchReport } from "@/lib/api";
 import { BrushIntro } from "./BrushIntro";
 import { ElementChart } from "./ElementChart";
+import { RetroCard } from "./RetroCard";
 import { Btn, Card, Chip, Dots, InkCircle, Stamp } from "./ui";
 
 const POS_LABEL: Record<string, string> = { hour: "시", day: "일", month: "월", year: "연" };
@@ -125,6 +126,21 @@ export function ReportDeck({ initial }: { initial: ReportPayload }) {
         </>
       ),
     },
+    /* 과거 검증 (신뢰 방아쇠) — 타입 다음, 반응 앞. 프로브 없으면 제외 */
+    ...(payload.retro.length > 0
+      ? [
+          {
+            key: "retro",
+            node: (
+              <>
+                <View style={st.grow} />
+                <RetroCard token={payload.token} probes={payload.retro} />
+                <View style={st.grow} />
+              </>
+            ),
+          } as CardItem,
+        ]
+      : []),
     /* 반응 체크 */
     {
       key: "reaction",

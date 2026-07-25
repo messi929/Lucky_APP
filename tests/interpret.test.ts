@@ -16,6 +16,9 @@ import {
   interpretSession,
   pivotFor,
   PROMPT_VERSION,
+  RETRO_TEMPLATES,
+  retroProbes,
+  retroSentence,
   remedyConflicts,
   SESSION_BEATS,
   type CacheStore,
@@ -367,5 +370,84 @@ describe("처방 어휘 오탐 방지 (부분문자열 충돌)", () => {
   it("'남색'(수)과 '남쪽'(화)을 혼동하지 않는다", () => {
     expect(remedyConflicts("남색 옷", "water")).toEqual([]);
     expect(remedyConflicts("남쪽으로", "water")).toContain("fire");
+  });
+});
+
+describe("과거 검증 프로브 (retroProbes — 신뢰 방아쇠)", () => {
+  const me = computeSaju({
+    birthDate: "1990-03-15",
+    birthTime: "14:30",
+    gender: "male",
+    birthRegion: "SEOUL",
+    calendarType: "solar",
+    unknownTime: false,
+  });
+
+  it("과거 대운 전환만 뽑는다 (미래 제외)", () => {
+    const probes = retroProbes(me);
+    expect(probes.length).toBeGreaterThan(0);
+    for (const p of probes) {
+      expect(p.pivotYear).toBeLessThanOrEqual(me.saju.currentYear);
+    }
+  });
+
+  it("기억나지 않을 어린 시절(17세 미만)은 제외", () => {
+    for (const p of retroProbes(me, 10)) expect(p.age).toBeGreaterThanOrEqual(17);
+  });
+
+  it("최근 전환부터 (가까운 과거일수록 검증률이 높다)", () => {
+    const years = retroProbes(me, 10).map((p) => p.pivotYear);
+    expect([...years].sort((a, b) => b - a)).toEqual(years);
+  });
+
+  it("전부 질문형 — 단정하지 않는다 (틀려도 손상 없어야 함)", () => {
+    for (const t of Object.values(RETRO_TEMPLATES)) {
+      expect(t.endsWith("?"), `질문형 아님: ${t}`).toBe(true);
+      expect(t).not.toMatch(/있었습니다|했습니다|겪었|분명히|틀림없/);
+    }
+  });
+
+  it("전 템플릿이 가드레일 최고 단계(L3)를 통과", () => {
+    for (const t of Object.values(RETRO_TEMPLATES)) {
+      expect(applyGuardrails(t, 3).ok, `가드레일 위반: ${t}`).toBe(true);
+    }
+  });
+
+  it("건강·사망·법적 사건 어휘 없음", () => {
+    for (const t of Object.values(RETRO_TEMPLATES)) {
+      expect(t).not.toMatch(/아프|병|수술|입원|사망|죽|이혼|소송|사고/);
+    }
+  });
+
+  it("완성 문장은 구간 + 질문", () => {
+    const p = retroProbes(me)[0]!;
+    const s = retroSentence(p);
+    expect(s).toContain(`${p.fromYear}년에서 ${p.toYear}년 사이`);
+    expect(s.endsWith("?")).toBe(true);
+  });
+
+  it("같은 입력은 항상 같은 결과 (재현성)", () => {
+    const a = JSON.stringify(retroProbes(me));
+    const b = JSON.stringify(retroProbes(me));
+    expect(a).toBe(b);
+  });
+
+  it("나이대가 다르면 프로브도 다르다 (68세 케이스)", () => {
+    const mom = computeSaju({
+      birthDate: "1958-07-02",
+      birthTime: "09:20",
+      gender: "female",
+      birthRegion: "SEOUL",
+      calendarType: "solar",
+      unknownTime: false,
+    });
+    const probes = retroProbes(mom);
+    expect(probes.length).toBeGreaterThan(0);
+    // 68세는 대운 전환 이력이 더 많다 (36세보다 프로브 후보가 많거나 같다)
+    expect(probes.length).toBeGreaterThanOrEqual(retroProbes(me).length);
+    // 질문 십신 근거가 사람마다 다르므로 문장 집합도 달라야 한다
+    const momQ = new Set(retroProbes(mom, 10).map((p) => p.question));
+    const meQ = new Set(retroProbes(me, 10).map((p) => p.question));
+    expect(JSON.stringify([...momQ])).not.toBe(JSON.stringify([...meQ]));
   });
 });

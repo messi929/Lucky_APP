@@ -5,6 +5,7 @@ import {
   deriveFacts,
   interpret,
   remedyFor,
+  retroProbes,
   type InterpretContext,
   type SajuInput,
 } from "@lucky/core";
@@ -84,5 +85,12 @@ export async function buildReport(
       const dl = dailyFor(input);
       return { line: dl.line, todayGanji: dl.todayGanji };
     })(),
+    retro: retroProbes(chart).map((p) => ({
+      pivotYear: p.pivotYear,
+      fromYear: p.fromYear,
+      toYear: p.toYear,
+      age: p.age,
+      question: p.question,
+    })),
   };
 }

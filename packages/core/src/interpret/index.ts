@@ -18,6 +18,13 @@ export {
   PROMPT_VERSION,
   MODELS,
 } from "./persona.js";
+export {
+  retroProbes,
+  retroPeriodLabel,
+  retroSentence,
+  RETRO_TEMPLATES,
+  type RetroProbe,
+} from "./retro.js";
 export { SESSION_BEATS } from "./types.js";
 export type {
   Reaction,
