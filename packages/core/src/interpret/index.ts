@@ -17,6 +17,7 @@ export {
   PERSONA_CLASSIC,
   PROMPT_VERSION,
   MODELS,
+  type PriorBeat,
 } from "./persona.js";
 export {
   retroProbes,

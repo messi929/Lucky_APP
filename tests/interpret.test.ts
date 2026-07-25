@@ -451,3 +451,57 @@ describe("과거 검증 프로브 (retroProbes — 신뢰 방아쇠)", () => {
     expect(JSON.stringify([...momQ])).not.toBe(JSON.stringify([...meQ]));
   });
 });
+
+describe("세션 비트 간 일관성 (B4 — 진단이 후속 비트 컨텍스트로)", () => {
+  const chart = computeSaju({
+    birthDate: "1990-03-15",
+    birthTime: "14:30",
+    gender: "male",
+    birthRegion: "SEOUL",
+    calendarType: "solar",
+    unknownTime: false,
+  });
+
+  it("진단 텍스트가 근거·시기·처방 프롬프트에 주입된다", async () => {
+    const prompts: string[] = [];
+    const generate: GenerateFn = async (p, meta) => {
+      prompts.push(p.user);
+      // 진단은 식별 가능한 고유 문장으로
+      if (meta?.kind === "session_diagnosis") return "당신의 결혼은 서른일곱에 열립니다XYZ.";
+      return "이어지는 해석입니다.";
+    };
+    const r = await interpretSession(chart, "marriage_timing", { season: "2026H2", paid: true }, { generate });
+    expect(r.beats.map((b) => b.kind)).toEqual(SESSION_BEATS);
+
+    // 진단 프롬프트에는 앞선 상담이 없어야 한다
+    expect(prompts[0]).not.toContain("[앞선 상담]");
+    // 근거·시기·처방 프롬프트에는 진단 문장이 실려야 한다
+    for (const p of prompts.slice(1)) {
+      expect(p).toContain("[앞선 상담]");
+      expect(p).toContain("서른일곱에 열립니다XYZ");
+    }
+  });
+
+  it("첫 비트(진단)는 prior 컨텍스트 없이 생성된다", async () => {
+    let firstUser = "";
+    let n = 0;
+    const generate: GenerateFn = async (p) => {
+      if (n++ === 0) firstUser = p.user;
+      return "해석입니다.";
+    };
+    await interpretSession(chart, "job", { season: "2026H2", paid: true }, { generate });
+    expect(firstUser).not.toContain("앞선 상담");
+  });
+
+  it("prior 주입이 원칙 2를 깨지 않는다 (생년월일 여전히 미포함)", async () => {
+    const prompts: string[] = [];
+    const generate: GenerateFn = async (p) => {
+      prompts.push(p.user);
+      return "1990년 어쩌구를 일부러 뱉는 진단."; // 진단이 연도를 뱉어도
+    };
+    await interpretSession(chart, "money_timing", { season: "2026H2", paid: true }, { generate });
+    // 후속 프롬프트에 진단 텍스트가 들어가긴 하지만, 원국 컨텍스트(toLlmContext)엔 생년월일이 없어야 한다.
+    // 진단 텍스트에 든 연도는 LLM이 생성한 것이지 우리가 생년월일을 넘긴 게 아니다 — 이 구분을 확인.
+    expect(prompts[0]).not.toContain("1990-03-15");
+  });
+});

@@ -12,7 +12,7 @@ import type { Element } from "../saju/constants.js";
 import type { ConcernId } from "../content/concerns.js";
 import { cacheKeyOf } from "./cache-key.js";
 import { applyGuardrails, DISCLAIMER, DISCLAIMER_CLASSIC } from "./guardrails.js";
-import { buildPrompt, modeOf, PROMPT_VERSION } from "./persona.js";
+import { buildPrompt, modeOf, PROMPT_VERSION, type PriorBeat } from "./persona.js";
 import { decomposeSessionUnits, decomposeUnits, deriveFacts } from "./units.js";
 import type {
   InterpretContext,
@@ -64,7 +64,9 @@ export async function interpretSession(
   const { units, locked } = decomposeSessionUnits(chart, concern, { ...ctx, concern });
   const beats: ResolvedUnit[] = [];
   for (const unit of units) {
-    beats.push(await resolveUnit(unit, chart, { ...ctx, concern }, deps));
+    // 앞서 생성된 비트를 컨텍스트로 전달 → 진단→근거→시기→처방이 서로 어긋나지 않게(B4).
+    const prior = beats.map((b) => ({ kind: b.kind, text: b.text }));
+    beats.push(await resolveUnit(unit, chart, { ...ctx, concern }, deps, prior));
   }
   const disclaimer = modeOf(ctx) === "classic" ? DISCLAIMER_CLASSIC : DISCLAIMER;
   return { concern, beats, lockedBeats: locked, disclaimer, promptVersion: PROMPT_VERSION };
@@ -75,10 +77,11 @@ async function resolveUnit(
   chart: SajuChart,
   ctx: InterpretContext,
   deps: InterpretDeps,
+  prior: PriorBeat[] = [],
 ): Promise<ResolvedUnit> {
   if (unit.source === "static") return resolveStatic(unit);
   if (unit.source === "rule") return resolveRule(unit);
-  return resolveLlm(unit, chart, ctx, deps);
+  return resolveLlm(unit, chart, ctx, deps, prior);
 }
 
 function resolveStatic(unit: InterpretationUnit): ResolvedUnit {
@@ -120,6 +123,7 @@ async function resolveLlm(
   chart: SajuChart,
   ctx: InterpretContext,
   deps: InterpretDeps,
+  prior: PriorBeat[] = [],
 ): Promise<ResolvedUnit> {
   const key = cacheKeyOf(unit, ctx, PROMPT_VERSION)!;
   const cached = deps.cache ? await deps.cache.get(key) : null;
@@ -127,7 +131,7 @@ async function resolveLlm(
     return { kind: unit.kind, source: "llm", cacheKey: key, text: cached, cacheHit: true };
   }
 
-  const prompt = buildPrompt(unit, chart, ctx);
+  const prompt = buildPrompt(unit, chart, ctx, prior);
   const tier = ctx.paid ? "paid" : "free";
   const level = unit.guardrailLevel;
 

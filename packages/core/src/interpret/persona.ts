@@ -11,8 +11,11 @@ import { DISCLAIMER } from "./guardrails.js";
 import { deriveFacts, toneOf } from "./units.js";
 import type { InterpretContext, InterpretationUnit, Mode, SajuChart, Tone } from "./types.js";
 
-/** 프롬프트 버전 — 화법/가드레일 변경 시 증가시켜 캐시 무효화(§4.3) */
-export const PROMPT_VERSION = "v2";
+/**
+ * 프롬프트 버전 — 화법/가드레일 변경 시 증가시켜 캐시 무효화(§4.3).
+ * v3: 처방 색·방위 단일 소스 주입(B3) + 세션 비트 간 일관성 컨텍스트(B4).
+ */
+export const PROMPT_VERSION = "v3";
 
 /** 모델 티어 (기획서 §2.2: 무료=Haiku급, 유료=Sonnet급) */
 export const MODELS = {
@@ -127,15 +130,41 @@ function unitInstruction(unit: InterpretationUnit, ctx: InterpretContext, chart?
   }
 }
 
+/**
+ * 세션 비트 간 일관성 지시문. 진단(무료 훅)이 앵커 — 뒤 비트(근거·시기·처방)가
+ * 이 결론과 어긋나면 헤비 유저가 여러 주제를 볼 때 모순이 바로 들킨다.
+ * 앞 비트 텍스트를 컨텍스트로만 주되, 반복하지 말고 '이어서' 쓰도록 지시한다.
+ */
+function priorDirective(prior: PriorBeat[]): string {
+  if (prior.length === 0) return "";
+  const anchor = prior[0]!; // 진단이 항상 첫 비트
+  const lines = [`[앞선 상담] 진단은 이렇게 말했습니다: "${anchor.text}"`];
+  if (prior.length > 1) {
+    const last = prior[prior.length - 1]!;
+    if (last !== anchor) lines.push(`직전 장은: "${last.text}"`);
+  }
+  lines.push("이 흐름과 어긋나지 않게 이어서 쓰되, 앞 문장을 그대로 반복하지는 마세요.");
+  return lines.join("\n");
+}
+
+/** 프롬프트에 주입할 앞선 비트 (텍스트만 — 캐시 키에는 넣지 않는다) */
+export interface PriorBeat {
+  kind: string;
+  text: string;
+}
+
 /** LLM 유닛용 프롬프트(system/user) 생성. 생년월일 원본 미포함(원칙 2). */
 export function buildPrompt(
   unit: InterpretationUnit,
   chart: SajuChart,
   ctx: InterpretContext,
+  prior: PriorBeat[] = [],
 ): { system: string; user: string } {
   const system = modeOf(ctx) === "classic" ? PERSONA_CLASSIC : PERSONA_MZ;
   const context = toLlmContext(chart);
   const guardrail = guardrailDirective(unit.guardrailLevel);
-  const user = [context, "", unitInstruction(unit, ctx, chart), guardrail].filter(Boolean).join("\n");
+  const user = [context, "", priorDirective(prior), unitInstruction(unit, ctx, chart), guardrail]
+    .filter(Boolean)
+    .join("\n");
   return { system, user };
 }
