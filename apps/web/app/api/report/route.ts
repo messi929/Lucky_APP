@@ -1,8 +1,9 @@
 import type { ReportRequest } from "@lucky/api-client";
-import type { InterpretContext } from "@lucky/core";
+import { collectMetrics, type InterpretContext } from "@lucky/core";
 import { createToken, getInput, isPaid } from "@/lib/store";
 import { buildReport } from "@/lib/report";
 import { currentSeason } from "@/lib/age";
+import { record } from "@/lib/events";
 
 export const runtime = "nodejs";
 
@@ -31,6 +32,12 @@ export async function POST(req: Request): Promise<Response> {
 
   try {
     const payload = await buildReport(token, input, ctx);
+    // 생성 품질 계측 (B6) — fire-and-forget
+    record("generation_quality", {
+      surface: "report",
+      paid: ctx.paid === true,
+      ...collectMetrics(payload.units),
+    });
     return Response.json(payload);
   } catch (e) {
     return Response.json({ error: (e as Error).message }, { status: 500 });

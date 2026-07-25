@@ -136,15 +136,24 @@ async function resolveLlm(
   const level = unit.guardrailLevel;
 
   // 가드레일 + 처방 정합성(색·방위 단일 소스)을 함께 통과해야 채택.
-  const accepts = (t: string): boolean =>
-    applyGuardrails(t, level).ok && remedyConsistent(t, unit, chart);
+  // 반려 사유를 계측용으로 구분: 가드레일 위반이 우선, 아니면 색·방위 불일치.
+  const rejectionOf = (t: string): "guardrail" | "remedy" | null => {
+    if (!applyGuardrails(t, level).ok) return "guardrail";
+    if (!remedyConsistent(t, unit, chart)) return "remedy";
+    return null;
+  };
 
   // 생성 → 검증. 위반 시 1회 재생성, 그래도 실패면 안전 폴백.
   let text = await deps.generate(prompt, { kind: unit.kind, tier });
   let guardrailFallback = false;
-  if (!accepts(text)) {
+  let retried = false;
+  let rejectReason: "guardrail" | "remedy" | undefined;
+  const firstReject = rejectionOf(text);
+  if (firstReject) {
+    retried = true;
+    rejectReason = firstReject;
     text = await deps.generate(prompt, { kind: unit.kind, tier });
-    if (!accepts(text)) {
+    if (rejectionOf(text)) {
       text = SAFE_FALLBACK[unit.kind] ?? "지금은 준비의 시기예요. 한 걸음씩 가세요.";
       guardrailFallback = true;
     }
@@ -158,5 +167,7 @@ async function resolveLlm(
     text,
     cacheHit: false,
     ...(guardrailFallback ? { guardrailFallback: true } : {}),
+    ...(retried ? { retried: true } : {}),
+    ...(rejectReason ? { rejectReason } : {}),
   };
 }

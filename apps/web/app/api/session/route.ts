@@ -1,8 +1,9 @@
 import type { SessionRequest } from "@lucky/api-client";
-import type { InterpretContext } from "@lucky/core";
+import { collectMetrics, type InterpretContext } from "@lucky/core";
 import { getInput, isSessionUnlocked } from "@/lib/store";
 import { buildSession } from "@/lib/session";
 import { currentSeason } from "@/lib/age";
+import { record } from "@/lib/events";
 
 export const runtime = "nodejs";
 
@@ -37,6 +38,13 @@ export async function POST(req: Request): Promise<Response> {
 
   try {
     const payload = await buildSession(body.token, input, body.concern, ctx);
+    // 생성 품질 계측 (B6) — fire-and-forget, 응답 지연 없음
+    record("generation_quality", {
+      surface: "session",
+      concern: body.concern,
+      paid: ctx.paid === true,
+      ...collectMetrics(payload.beats),
+    });
     return Response.json(payload);
   } catch (e) {
     return Response.json({ error: (e as Error).message }, { status: 500 });

@@ -11,7 +11,11 @@ export interface AppEvent {
   ts: number;
 }
 
-const buffer: AppEvent[] = [];
+// 인메모리 버퍼는 globalThis에 둔다 — Next dev는 라우트별로 모듈을 격리 번들하므로
+// 그냥 모듈 지역 배열이면 record(리포트 라우트)와 recent(metrics 라우트)가 서로 다른
+// 버퍼를 본다(계측이 0으로 나옴). storage 어댑터와 동일한 패턴.
+const g = globalThis as typeof globalThis & { __luckyEvents?: AppEvent[] };
+const buffer: AppEvent[] = (g.__luckyEvents ??= []);
 
 export function record(name: string, props?: Record<string, unknown>): void {
   const e: AppEvent = { name, ts: Date.now(), ...(props ? { props } : {}) };

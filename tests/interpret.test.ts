@@ -6,6 +6,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   applyGuardrails,
   cacheKeyOf,
+  collectMetrics,
   computeSaju,
   CONCERNS,
   decomposeSessionUnits,
@@ -503,5 +504,65 @@ describe("세션 비트 간 일관성 (B4 — 진단이 후속 비트 컨텍스�
     // 후속 프롬프트에 진단 텍스트가 들어가긴 하지만, 원국 컨텍스트(toLlmContext)엔 생년월일이 없어야 한다.
     // 진단 텍스트에 든 연도는 LLM이 생성한 것이지 우리가 생년월일을 넘긴 게 아니다 — 이 구분을 확인.
     expect(prompts[0]).not.toContain("1990-03-15");
+  });
+});
+
+describe("생성 품질 계측 (B6 — collectMetrics)", () => {
+  const chart = computeSaju({
+    birthDate: "1990-03-15",
+    birthTime: "14:30",
+    gender: "male",
+    birthRegion: "SEOUL",
+    calendarType: "solar",
+    unknownTime: false,
+  });
+
+  function memCache() {
+    const m = new Map<string, string>();
+    return { get: async (k: string) => m.get(k) ?? null, set: async (k: string, v: string) => void m.set(k, v) };
+  }
+
+  it("정상 생성이면 폴백·재생성 0", async () => {
+    const generate: GenerateFn = async () => "담백하게 이어지는 정상 해석입니다.";
+    const r = await interpretSession(chart, "job", { season: "2026H2", paid: true }, { generate });
+    const m = collectMetrics(r.beats);
+    expect(m.llm).toBe(4);
+    expect(m.fallbacks).toBe(0);
+    expect(m.retries).toBe(0);
+    expect(m.cacheHitRate).toBe(0); // 캐시 없음
+  });
+
+  it("캐시 히트율을 잰다", async () => {
+    const cache = memCache();
+    const generate: GenerateFn = async () => "정상 해석입니다.";
+    await interpretSession(chart, "job", { season: "2026H2", paid: true }, { generate, cache });
+    const r2 = await interpretSession(chart, "job", { season: "2026H2", paid: true }, { generate, cache });
+    const m = collectMetrics(r2.beats);
+    expect(m.cacheHits).toBe(m.llm);
+    expect(m.cacheHitRate).toBe(1);
+  });
+
+  it("색·방위 반려는 rejectReason=remedy 로 계측", async () => {
+    // 처방은 water인데 초록·동쪽을 뱉는 모델 → remedy 반려 후 폴백
+    const generate: GenerateFn = async () => "초록색 소품을 동쪽에 두세요.";
+    const r = await interpretSession(chart, "health_year", { season: "2026H2", paid: true }, { generate });
+    const m = collectMetrics(r.beats);
+    expect(m.retries).toBeGreaterThan(0);
+    expect(m.rejectRemedy).toBeGreaterThan(0);
+    expect(m.fallbacks).toBeGreaterThan(0);
+  });
+
+  it("가드레일 반려는 rejectReason=guardrail 로 계측", async () => {
+    // L2 위반(매매 지시)
+    const generate: GenerateFn = async () => "지금 당장 사세요.";
+    const report = await interpret(chart, { season: "2026H2", concern: "real_estate" }, { generate });
+    const m = collectMetrics(report.units);
+    expect(m.rejectGuardrail).toBeGreaterThan(0);
+  });
+
+  it("빈 목록은 0 비율 (0 나눗셈 방어)", () => {
+    const m = collectMetrics([]);
+    expect(m.cacheHitRate).toBe(0);
+    expect(m.fallbackRate).toBe(0);
   });
 });

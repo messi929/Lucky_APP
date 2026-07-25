@@ -26,6 +26,7 @@ export {
   RETRO_TEMPLATES,
   type RetroProbe,
 } from "./retro.js";
+export { collectMetrics, type GenerationMetrics } from "./metrics.js";
 export { SESSION_BEATS } from "./types.js";
 export type {
   Reaction,
