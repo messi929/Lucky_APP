@@ -78,7 +78,7 @@ export function TaekilForm({ token }: { token: string }) {
           <div style={{ fontWeight: 700, fontSize: 14, color: "var(--vermil)", letterSpacing: "0.1em" }}>좋은 날</div>
           {result.goodDays.map((d) => (
             <div key={d.date} className="card hstack" style={{ alignItems: "flex-start", gap: 12 }}>
-              <span style={{ minWidth: 96, fontFamily: "var(--serif)", fontWeight: 900, fontSize: 15 }}>{d.date}</span>
+              <span style={{ minWidth: 96, fontFamily: "var(--serif)", fontWeight: 700, fontSize: 15 }}>{d.date}</span>
               <span className="fine" style={{ fontSize: 12, color: "var(--ink-70)" }}>{d.ganjiHangul} — {d.reasons.join(" / ")}</span>
             </div>
           ))}

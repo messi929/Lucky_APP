@@ -166,7 +166,7 @@ export function BirthFields({
       {!!err && <p style={{ color: "var(--vermil)", fontSize: 13, fontWeight: 500 }}>{err}</p>}
 
       <div className="grow" />
-      <p className="fine" style={{ fontSize: 11.5, color: "var(--ink-40)", lineHeight: 1.5, margin: 0 }}>
+      <p className="fine" style={{ fontSize: 12, color: "var(--ink-70)", lineHeight: 1.5, margin: 0 }}>
         입력한 생일은 사주 계산에만 써요. 원본은 AI 해석에 넘기지 않고 간지·오행 값만 전달합니다.
       </p>
       <button type="submit" disabled={busy || !ready} className="btn ink">

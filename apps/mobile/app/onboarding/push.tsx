@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
   sub: { fontSize: 14, color: color.inkSoft, textAlign: "center", marginTop: 10, lineHeight: 22 },
   preview: { backgroundColor: color.white, borderRadius: 14, borderWidth: 1, borderColor: color.hanjiDeep, padding: 14, marginTop: 24, alignSelf: "stretch" },
   previewLabel: { fontSize: 11, color: color.inkMuted, marginBottom: 4 },
-  previewText: { fontFamily: FONT.serifBlack, fontWeight: "700", fontSize: 14, color: color.ink },
+  previewText: { fontFamily: FONT.serifBold, fontSize: 14, color: color.ink },
   status: { color: color.vermilion, marginTop: 16 },
   btn: { backgroundColor: color.ink, borderRadius: 14, paddingVertical: 16, paddingHorizontal: 40, marginTop: 24, alignSelf: "stretch", alignItems: "center" },
   btnText: { color: color.hanji, fontSize: 16, fontWeight: "700" },

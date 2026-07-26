@@ -47,7 +47,7 @@ export default async function ConsultHubPage({
 
       <div style={{ height: 10 }} />
       <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
-        <span style={{ fontFamily: "var(--serif)", fontWeight: 900, fontSize: 16, color: "var(--ink)" }}>
+        <span style={{ fontFamily: "var(--serif)", fontWeight: 700, fontSize: 16, color: "var(--ink)" }}>
           {CONSULTANT.name} {CONSULTANT.title}
         </span>
         <span style={{ fontSize: 12, color: "var(--ink-40)" }}>{CONSULTANT.tagline}</span>

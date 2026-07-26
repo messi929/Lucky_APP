@@ -83,7 +83,7 @@ export default function ConsultHub() {
 
       <View style={{ height: 10 }} />
       <View style={{ flexDirection: "row", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
-        <Text style={{ fontFamily: FONT.serifBlack, fontSize: 16, color: color.ink }}>
+        <Text style={{ fontFamily: FONT.serifBold, fontSize: 16, color: color.ink }}>
           {CONSULTANT.name} {CONSULTANT.title}
         </Text>
         <Text style={{ fontFamily: FONT.sans, fontSize: 12, color: color.inkMuted }}>{CONSULTANT.tagline}</Text>

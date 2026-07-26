@@ -215,7 +215,7 @@ function buildCards(
           <div style={eyebrow}>이 상담 하나 열기</div>
           <div style={{ height: 14 }} />
           <div style={{ border: "1px dashed var(--gold)", borderRadius: 14, padding: 18, textAlign: "center" }}>
-            <p style={{ fontFamily: "var(--serif)", fontWeight: 900, fontSize: 18, lineHeight: 1.5 }}>시기 · 처방<br />두 장을 이어서 봅니다</p>
+            <p style={{ fontFamily: "var(--serif)", fontWeight: 700, fontSize: 18, lineHeight: 1.5 }}>시기 · 처방<br />두 장을 이어서 봅니다</p>
             <div style={{ height: 14 }} />
             <div style={{ display: "flex", gap: 8 }}>
               {["시기", "처방"].map((t) => (
