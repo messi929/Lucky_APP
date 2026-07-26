@@ -1,5 +1,5 @@
 import type { SessionPayload } from "@lucky/api-client";
-import type { ConcernId } from "@lucky/core";
+import { CONSULTANT, type ConcernId } from "@lucky/core";
 import { router, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from "react-native";
@@ -71,7 +71,7 @@ export default function Session() {
         <Stamp char="緣" size={40} />
         <View style={{ height: 16 }} />
         <ActivityIndicator color={color.ink} />
-        <Text style={[st.fine, { marginTop: 12 }]}>도사가 헤아리는 중…</Text>
+        <Text style={[st.fine, { marginTop: 12 }]}>{CONSULTANT.name} {CONSULTANT.title}가 헤아리는 중…</Text>
       </View>
     );
   }

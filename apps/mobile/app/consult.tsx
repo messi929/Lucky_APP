@@ -1,4 +1,4 @@
-import { CONCERN_HUB, concernsForAge, seasonHook, seasonPhase, type ConcernId } from "@lucky/core";
+import { CONCERN_HUB, CONSULTANT, concernsForAge, seasonHook, seasonPhase, type ConcernId } from "@lucky/core";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
@@ -79,6 +79,14 @@ export default function ConsultHub() {
       <View style={s.hstack}>
         <Stamp char="問" size={30} />
         <Text style={s.eyebrow}>{who ? `${who}의 상담` : "오늘의 상담"}</Text>
+      </View>
+
+      <View style={{ height: 10 }} />
+      <View style={{ flexDirection: "row", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
+        <Text style={{ fontFamily: FONT.serifBlack, fontSize: 16, color: color.ink }}>
+          {CONSULTANT.name} {CONSULTANT.title}
+        </Text>
+        <Text style={{ fontFamily: FONT.sans, fontSize: 12, color: color.inkMuted }}>{CONSULTANT.tagline}</Text>
       </View>
 
       <SeasonStrip />

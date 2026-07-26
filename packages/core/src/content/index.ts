@@ -5,3 +5,4 @@ export * from "./hooks.js";
 export * from "./concerns.js";
 export * from "./remedies.js";
 export * from "./pivots.js";
+export * from "./consultant.js";

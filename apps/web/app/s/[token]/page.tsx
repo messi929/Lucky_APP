@@ -1,4 +1,4 @@
-import { CONCERN_HUB, concernsForAge, seasonHook, seasonPhase } from "@lucky/core";
+import { CONCERN_HUB, CONSULTANT, concernsForAge, seasonHook, seasonPhase } from "@lucky/core";
 import Link from "next/link";
 import { Stamp } from "@/components/ui";
 import { ageFromBirth } from "@/lib/age";
@@ -43,6 +43,14 @@ export default async function ConsultHubPage({
         <span style={{ fontSize: 12, letterSpacing: "0.32em", color: "var(--ink-40)", fontWeight: 600 }}>
           오늘의 상담
         </span>
+      </div>
+
+      <div style={{ height: 10 }} />
+      <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
+        <span style={{ fontFamily: "var(--serif)", fontWeight: 900, fontSize: 16, color: "var(--ink)" }}>
+          {CONSULTANT.name} {CONSULTANT.title}
+        </span>
+        <span style={{ fontSize: 12, color: "var(--ink-40)" }}>{CONSULTANT.tagline}</span>
       </div>
 
       {showSeason && (

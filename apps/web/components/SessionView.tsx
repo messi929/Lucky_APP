@@ -1,7 +1,7 @@
 "use client";
 
 import { SKUS, type SessionPayload } from "@lucky/api-client";
-import type { ConcernId } from "@lucky/core";
+import { CONSULTANT, type ConcernId } from "@lucky/core";
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { Stamp } from "./ui";
@@ -75,7 +75,7 @@ export function SessionView({ token, concern }: { token: string; concern: string
       <main className="screen" style={{ justifyContent: "center", alignItems: "center" }}>
         <Stamp char="緣" size={40} />
         <div style={{ height: 16 }} />
-        <p className="sub">도사가 헤아리는 중…</p>
+        <p className="sub">{CONSULTANT.name} {CONSULTANT.title}가 헤아리는 중…</p>
       </main>
     );
   }
