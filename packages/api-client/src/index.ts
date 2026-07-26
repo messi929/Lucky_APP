@@ -51,6 +51,13 @@ export interface ChartSummary {
   character: { name: string; tagline: string; keywords: string[] };
   remedy: { element: string; colors: string[]; direction: string; oneThing: string };
   boundary: { isBoundary: boolean; note?: string };
+  /** 만세력 보정 신뢰 배지용 (원본 날짜 미포함 — 플래그·경도만) */
+  correction?: {
+    dstApplied: boolean;
+    localMeanTimeApplied: boolean;
+    standardTimeEra: boolean;
+    longitude: number;
+  };
   unknownTime: boolean;
 }
 

@@ -50,6 +50,13 @@ export function buildChartSummary(chart: Chart, input: SajuInput): ChartSummary 
     boundary: chart.boundary.isBoundary
       ? { isBoundary: true, ...(chart.boundary.note ? { note: chart.boundary.note } : {}) }
       : { isBoundary: false },
+    // 원본 날짜 미노출(원칙2) — 보정 플래그·경도만 신뢰 배지로 전달
+    correction: {
+      dstApplied: chart.meta.dstApplied,
+      localMeanTimeApplied: chart.meta.localMeanTimeApplied,
+      standardTimeEra: chart.meta.standardTimeEra,
+      longitude: chart.meta.longitude,
+    },
     unknownTime: input.unknownTime,
   };
 }

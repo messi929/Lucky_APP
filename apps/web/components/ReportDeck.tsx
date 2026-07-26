@@ -112,6 +112,22 @@ export function ReportDeck({ initial }: { initial: ReportPayload }) {
             <div className="sub" style={{ fontSize: 12 }}>{c.boundary.note}</div>
           </div>
         )}
+        {c.correction &&
+          (() => {
+            const parts: string[] = [];
+            if (c.correction.localMeanTimeApplied)
+              parts.push(`경도 ${c.correction.longitude.toFixed(1)}°E 진태양시 보정`);
+            else if (c.correction.standardTimeEra) parts.push("표준시 변경기 보정");
+            if (c.correction.dstApplied) parts.push("서머타임 −1시간 보정");
+            return (
+              <div
+                className="fine"
+                style={{ marginTop: 8, fontSize: 11.5, color: "var(--gold)", letterSpacing: "0.01em" }}
+              >
+                정밀 만세력{parts.length ? ` · ${parts.join(" · ")}` : " · 표준 계산"}
+              </div>
+            );
+          })()}
 
         {/* 오늘의 한 줄 */}
         <div style={{ marginTop: 12, background: "var(--ink)", borderRadius: 16, padding: 18 }}>

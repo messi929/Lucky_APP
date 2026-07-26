@@ -151,6 +151,9 @@ export function BirthForm({
       </View>
 
       {!!err && <Text style={s.err}>{err}</Text>}
+      <Text style={[s.hint, { textAlign: "center", marginBottom: 8 }]}>
+        입력한 생일은 사주 계산에만 — 원본은 AI 해석에 넘기지 않고 간지·오행만 전달해요.
+      </Text>
       <Btn label={busy ? "팔자를 적는 중…" : submitLabel} onPress={submit} disabled={busy || !ready} />
     </View>
   );
