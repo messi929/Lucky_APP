@@ -130,7 +130,8 @@ export type SkuId =
   | "child_fortune" // 자녀운(수능/취업/혼사)
   | "taekil" // 택일(이사/개업/계약)
   | "exam" // 시험운
-  | "newyear"; // 신년 대운 리포트
+  | "newyear" // 신년 대운 리포트
+  | "session_unlock"; // 상담 주제 1개 해금(근거까지 무료 후 시기·처방)
 
 export interface Sku {
   id: SkuId;
@@ -148,6 +149,7 @@ export interface Sku {
 
 export const SKUS: Record<SkuId, Sku> = {
   full_report: { id: "full_report", label: "복채 풀 리포트 + 문답 1회", price: 3900, tier: "paid" },
+  session_unlock: { id: "session_unlock", label: "이 주제 상담 (시기·처방)", price: 990, tier: "paid" },
   compat_detail: { id: "compat_detail", label: "궁합 상세 + 기념일 카드", price: 2900, tier: "paid" },
   timing: { id: "timing", label: "이직/결혼 타이밍", price: 6900, tier: "paid" },
   child_fortune: {

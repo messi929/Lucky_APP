@@ -1,6 +1,6 @@
 "use client";
 
-import type { SessionPayload } from "@lucky/api-client";
+import { SKUS, type SessionPayload } from "@lucky/api-client";
 import type { ConcernId } from "@lucky/core";
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
@@ -8,7 +8,7 @@ import { Stamp } from "./ui";
 
 /**
  * 상담 세션 (웹 프리뷰) — 고민 1개 집중: 진단→근거→시기→처방→마무리→다음.
- * 무료는 진단까지, 근거·시기·처방은 주제 단위 해금(원칙 9 동의).
+ * 무료는 근거까지, 시기·처방은 주제 단위 해금(원칙 9 동의). 전체 리포트는 모든 상담 번들.
  */
 
 const POS_LABEL: Record<string, string> = { hour: "시", day: "일", month: "월", year: "연" };
@@ -223,14 +223,22 @@ function buildCards(
               ))}
             </div>
           </div>
-          <div style={{ height: 12 }} />
+          <div style={{ height: 10 }} />
+          <p style={{ textAlign: "center", fontSize: 12.5, color: "var(--ink-70)", lineHeight: 1.55 }}>
+            주제 4개면 {(SKUS.session_unlock.price * 4).toLocaleString()}원 —{" "}
+            <b style={{ color: "var(--ink)" }}>전체 {SKUS.full_report.price.toLocaleString()}원</b>에 모든 상담과 리포트가 열려요.
+          </p>
+          <div style={{ height: 10 }} />
           <div className="card"><p style={{ fontSize: 12.5, color: "var(--ink-70)", lineHeight: 1.5 }}>구매 전 안내 · 콘텐츠 특성상 열람 즉시 청약철회가 제한됩니다. 아래를 눌러 동의하고 진행합니다.</p></div>
         </>
       ),
       action: (
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           <button className="btn" style={{ background: "var(--gold)", color: "#fff" }} disabled={unlocking} onClick={unlock}>
-            {unlocking ? "여는 중…" : "동의하고 열기 · 990원"}
+            {unlocking ? "여는 중…" : `동의하고 열기 · 이 주제 ${SKUS.session_unlock.price.toLocaleString()}원`}
+          </button>
+          <button className="btn ink" onClick={() => router.push(`/pay?token=${p.token}&sku=full_report`)}>
+            전체 리포트 + 모든 상담 · {SKUS.full_report.price.toLocaleString()}원
           </button>
           <button className="btn ghost" onClick={() => router.push(`/s/${p.token}`)}>다른 고민부터 볼래요</button>
         </div>
