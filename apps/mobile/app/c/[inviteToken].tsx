@@ -24,8 +24,9 @@ export default function InviteeLanding() {
     setBusy(true);
     setErr("");
     try {
-      const { compatToken } = await solveCompat(inviteToken, birth);
-      router.replace(`/compat/${compatToken}`);
+      const { compatToken, bToken } = await solveCompat(inviteToken, birth);
+      // me = B 토큰: 결과 화면이 재입력 없이 B 자기 리포트로 잇게(역유입).
+      router.replace(`/compat/${compatToken}${bToken ? `?me=${bToken}` : ""}`);
     } catch {
       setErr("문제가 생겼어요. 다시 시도해 주세요.");
       setBusy(false);

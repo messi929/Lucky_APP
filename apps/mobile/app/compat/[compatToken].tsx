@@ -1,15 +1,16 @@
 import type { CompatResult } from "@lucky/core";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, ScrollView, Share, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Btn, InkCircle } from "@/components/ui";
 import { compatResult } from "@/lib/api";
-import { color, FONT } from "@/lib/theme";
+import { API_BASE, color, FONT } from "@/lib/theme";
 
 /** REL-3 궁합 결과 (§8.1). 등급 4종, 나쁜 결과 없음 프레임. */
 export default function CompatResultScreen() {
-  const { compatToken } = useLocalSearchParams<{ compatToken: string }>();
+  // me = 방금 궁합을 푼 B의 결과 토큰(있으면). 재입력 없이 자기 리포트로 역유입.
+  const { compatToken, me } = useLocalSearchParams<{ compatToken: string; me?: string }>();
   const insets = useSafeAreaInsets();
   const [data, setData] = useState<{ result: CompatResult; aHanja: string; bHanja: string } | null>(null);
   const [err, setErr] = useState("");
@@ -46,8 +47,13 @@ export default function CompatResultScreen() {
       </View>
       <View style={{ flex: 1 }} />
       <View style={{ width: "100%", gap: 6, marginTop: 24 }}>
-        <Btn label="관계 상세 보기 (구독)" variant="ink" onPress={() => router.push("/subscribe")} />
-        <Btn label="내 사주 전체 보기" variant="kakao" onPress={() => router.replace("/")} />
+        <Btn label="내 사주 전체 보기" variant="ink" onPress={() => router.replace(me ? `/r/${me}` : "/")} />
+        <Btn
+          label="카카오톡으로 자랑하기"
+          variant="kakao"
+          onPress={() => Share.share({ message: `우리 궁합 나왔어요 ${API_BASE}/compat/${compatToken}` })}
+        />
+        <Btn label="관계 상세 보기 (구독)" variant="ghost" onPress={() => router.push("/subscribe")} />
       </View>
     </ScrollView>
   );

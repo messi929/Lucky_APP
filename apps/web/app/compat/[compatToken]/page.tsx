@@ -2,12 +2,21 @@ import { computeCompat, computeSaju } from "@lucky/core";
 import Link from "next/link";
 import { getCompat, getInput } from "@/lib/store";
 import { InkCircle } from "@/components/ui";
+import { CompatShare } from "@/components/CompatShare";
 
 export const dynamic = "force-dynamic";
 
 /** REL-3 궁합 결과 (A·B 공동 열람, §8.1). 나쁜 결과 없음 — 부정 프레임 금지. */
-export default async function CompatPage({ params }: { params: Promise<{ compatToken: string }> }) {
+export default async function CompatPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ compatToken: string }>;
+  searchParams: Promise<{ me?: string }>;
+}) {
   const { compatToken } = await params;
+  // me = 방금 궁합을 푼 B의 결과 토큰(있으면). 재입력 없이 자기 리포트로 역유입.
+  const { me } = await searchParams;
   const data = await getCompat(compatToken);
   const aInput = data ? await getInput(data.aToken) : null;
 
@@ -49,9 +58,11 @@ export default async function CompatPage({ params }: { params: Promise<{ compatT
         </ul>
       </div>
       <div className="grow" />
-      <Link href={`/pay?token=${data.aToken}&sku=compat_detail`} className="btn ink">관계 상세 보기 · 2,900원</Link>
+      <Link href={me ? `/r/${me}` : "/input"} className="btn ink">내 사주 전체 보기</Link>
       <div style={{ height: 6, width: "100%" }} />
-      <Link href="/input" className="btn kakao">내 사주 전체 보기</Link>
+      <CompatShare path={`/compat/${compatToken}`} />
+      <div style={{ height: 6, width: "100%" }} />
+      <Link href={`/pay?token=${data.aToken}&sku=compat_detail`} className="btn ghost">관계 상세 보기 · 2,900원</Link>
     </main>
   );
 }

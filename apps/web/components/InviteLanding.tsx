@@ -33,8 +33,9 @@ export function InviteLanding({
         body: JSON.stringify({ action: "solve", inviteToken, birth }),
       });
       if (!res.ok) throw new Error();
-      const data = (await res.json()) as { compatToken: string };
-      router.push(`/compat/${data.compatToken}`);
+      const data = (await res.json()) as { compatToken: string; bToken?: string };
+      // me = B 토큰: 결과 화면이 재입력 없이 B 자기 리포트로 잇게. (공유 링크엔 안 붙음 — 누수 방지)
+      router.push(`/compat/${data.compatToken}${data.bToken ? `?me=${data.bToken}` : ""}`);
     } catch {
       setErr("잠시 문제가 생겼어요. 다시 시도해 주세요.");
       setBusy(false);

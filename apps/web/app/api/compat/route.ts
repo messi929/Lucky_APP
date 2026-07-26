@@ -10,6 +10,7 @@ import { record } from "@/lib/events";
 import {
   createCompat,
   createInvite,
+  createToken,
   getCompat,
   getInput,
   getInvite,
@@ -51,8 +52,11 @@ export async function POST(req: Request): Promise<Response> {
       invite.relation,
     );
     const compatToken = await createCompat(invite.ownerToken, body.birth, invite.relation);
+    // B의 결과 토큰 발급 — 방금 넣은 생일로 재입력 없이 자기 리포트(/r/{bToken})로 역유입.
+    // 루프 종결: B가 자기 리포트를 보면 하단 CompatInvite로 B도 초대를 만든다.
+    const bToken = await createToken(body.birth);
     record("compat_completed", { relation: invite.relation, grade: result.grade });
-    return Response.json({ compatToken, result });
+    return Response.json({ compatToken, bToken, result });
   }
 
   // 앱용 조회: 초대 정보(A 타입) — 수신자 랜딩

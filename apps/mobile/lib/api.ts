@@ -109,7 +109,7 @@ export const inviteInfo = (inviteToken: string) =>
   });
 
 export const solveCompat = (inviteToken: string, birth: SajuInput) =>
-  post<{ compatToken: string; result: CompatResult }>("/api/compat", {
+  post<{ compatToken: string; bToken?: string; result: CompatResult }>("/api/compat", {
     action: "solve",
     inviteToken,
     birth,
