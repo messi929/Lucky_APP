@@ -41,7 +41,7 @@ const NEXT: Partial<Record<ConcernId, { concern?: ConcernId; label: string; sub:
   // taekil: 택일은 여정의 종착 — 다음 없이 허브로
 };
 
-/** 토큰 + 고민 → 세션 페이로드 (진단→근거→시기→처방, 무료=진단만) */
+/** 토큰 + 고민 → 세션 페이로드 (진단→근거→시기→처방, 무료=진단·근거) */
 export async function buildSession(
   token: string,
   input: SajuInput,

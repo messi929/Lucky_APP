@@ -52,7 +52,7 @@ export async function interpret(
 
 /**
  * 상담 세션 리딩 — concern 1개 집중(진단→근거→시기→처방).
- * 무료면 진단만 생성(비용 절감), 유료면 4비트 전체. 나머지는 lockedBeats로 결제 유도.
+ * 무료면 진단·근거 생성(신뢰 형성), 유료면 4비트 전체. 나머지는 lockedBeats로 결제 유도.
  * 오프닝 리포트(interpret)와 분리 — 허브에서 주제 선택 시 이 함수 호출.
  */
 export async function interpretSession(

@@ -129,33 +129,34 @@ function buildCards(p: SessionPayload, personToken?: string): CardItem[] {
     ),
   });
 
-  if (p.paid) {
-    // 2) 근거 — 원국 일지 하이라이트
-    const reason = byKind("session_reason");
-    cards.push({
-      key: "reason",
-      node: (
-        <>
-          <Text style={st.eyebrow}>{BEAT_EYEBROW.session_reason}</Text>
-          <View style={{ height: 14 }} />
-          <View style={st.pillars}>
-            {p.chart.pillars.map((pl) => {
-              const isDay = pl.position === "day";
-              return (
-                <View key={pl.position} style={[st.pil, isDay ? st.pilDay : st.pilWhite]}>
-                  <Text style={[st.pilPos, { color: isDay ? color.hanji : color.inkMuted }]}>{POS_LABEL[pl.position]}</Text>
-                  <Text style={[st.pilHanja, { color: isDay ? color.hanji : color.ink }]}>{pl.stemHanja}</Text>
-                  <Text style={[st.pilHanja, { color: isDay ? color.vermilion : color.ink }]}>{pl.branchHanja}</Text>
-                </View>
-              );
-            })}
-          </View>
-          <View style={{ height: 18 }} />
-          <Text style={st.body}>{reason?.text ?? "…"}</Text>
-        </>
-      ),
-    });
+  // 2) 근거 — 원국 일지 하이라이트 (근거까지 무료)
+  const reason = byKind("session_reason");
+  cards.push({
+    key: "reason",
+    node: (
+      <>
+        <Text style={st.eyebrow}>{BEAT_EYEBROW.session_reason}</Text>
+        <View style={{ height: 14 }} />
+        <View style={st.pillars}>
+          {p.chart.pillars.map((pl) => {
+            const isDay = pl.position === "day";
+            return (
+              <View key={pl.position} style={[st.pil, isDay ? st.pilDay : st.pilWhite]}>
+                <Text style={[st.pilPos, { color: isDay ? color.hanji : color.inkMuted }]}>{POS_LABEL[pl.position]}</Text>
+                <Text style={[st.pilHanja, { color: isDay ? color.hanji : color.ink }]}>{pl.stemHanja}</Text>
+                <Text style={[st.pilHanja, { color: isDay ? color.vermilion : color.ink }]}>{pl.branchHanja}</Text>
+              </View>
+            );
+          })}
+        </View>
+        <View style={{ height: 18 }} />
+        <Text style={st.body}>{reason?.text ?? "…"}</Text>
+      </>
+    ),
+  });
 
+  // 시기·처방(실행 답)만 유료
+  if (p.paid) {
     // 3) 시기
     const timing = byKind("session_timing");
     cards.push({
@@ -223,10 +224,10 @@ function buildCards(p: SessionPayload, personToken?: string): CardItem[] {
           <Text style={st.eyebrow}>이 상담 하나 열기</Text>
           <View style={{ height: 14 }} />
           <View style={st.lockCard}>
-            <Text style={st.lockTitle}>근거 · 시기 · 처방{"\n"}세 장을 이어서 봅니다</Text>
+            <Text style={st.lockTitle}>시기 · 처방{"\n"}두 장을 이어서 봅니다</Text>
             <View style={{ height: 14 }} />
             <View style={st.pillars}>
-              {["근거", "시기", "처방"].map((t) => (
+              {["시기", "처방"].map((t) => (
                 <View key={t} style={[st.pil, st.pilWhite, { opacity: 0.5 }]}>
                   <Text style={[st.pilHanja, { color: color.inkMuted, fontSize: 15 }]}>{t}</Text>
                 </View>

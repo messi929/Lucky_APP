@@ -161,7 +161,7 @@ export function decomposeUnits(chart: SajuChart, ctx: InterpretContext): Interpr
 
 /**
  * 상담 세션 유닛 분해 — concern 1개에 대한 집중 리딩(진단→근거→시기→처방).
- * 무료(paid=false)면 진단 비트만, 유료면 4비트 전체. 나머지는 lockedBeats로.
+ * 무료(paid=false)면 진단·근거 2비트, 유료면 4비트 전체. 나머지는 lockedBeats로.
  * 모두 LLM·시즌·concern 축. 가드레일 단계는 concern에서 상속(L2 관망/L3 민감).
  */
 export function decomposeSessionUnits(
@@ -174,7 +174,10 @@ export function decomposeSessionUnits(
   const concern = concernById(concernId);
   const value = `${f.iljuHanja}|${f.monthStemTenGod}|${f.yearGanji}|${tone}`;
 
-  const active: SessionBeatKind[] = ctx.paid ? SESSION_BEATS : ["session_diagnosis"];
+  // 무료 = 진단·근거(신뢰 형성). 유료 = 시기·처방(실행 답, 절정 직전 결제벽).
+  const active: SessionBeatKind[] = ctx.paid
+    ? SESSION_BEATS
+    : ["session_diagnosis", "session_reason"];
   const locked = SESSION_BEATS.filter((b) => !active.includes(b));
 
   const units: InterpretationUnit[] = active.map((kind) => ({

@@ -51,7 +51,7 @@ export function SessionView({ token, concern }: { token: string; concern: string
       });
       if (!r.ok) throw new Error("해금에 실패했어요.");
       await load(); // 유료 4비트로 재조회
-      setI(1); // 진단 다음(근거)부터 이어보기
+      setI(2); // 진단·근거 다음(시기)부터 이어보기
     } catch (e) {
       setErr((e as Error).message);
     } finally {
@@ -138,30 +138,32 @@ function buildCards(
     ),
   });
 
+  cards.push({
+    key: "reason",
+    node: (
+      <>
+        <div style={eyebrow}>{EYEBROW.session_reason}</div>
+        <div style={{ height: 14 }} />
+        <div style={{ display: "flex", gap: 8 }}>
+          {p.chart.pillars.map((pl) => {
+            const day = pl.position === "day";
+            return (
+              <div key={pl.position} style={{ flex: 1, textAlign: "center", borderRadius: 12, padding: "12px 0", background: day ? "var(--ink)" : "var(--white)", border: "1px solid var(--paper-dk)" }}>
+                <div style={{ fontSize: 10, color: day ? "rgba(255,255,255,.6)" : "var(--ink-40)", marginBottom: 5 }}>{POS_LABEL[pl.position]}</div>
+                <div style={{ fontFamily: "var(--serif)", fontWeight: 900, fontSize: 23, color: day ? "var(--paper)" : "var(--ink)" }}>{pl.stemHanja}</div>
+                <div style={{ fontFamily: "var(--serif)", fontWeight: 900, fontSize: 23, color: "var(--vermil)" }}>{pl.branchHanja}</div>
+              </div>
+            );
+          })}
+        </div>
+        <div style={{ height: 18 }} />
+        <p style={body}>{byKind("session_reason")?.text}</p>
+      </>
+    ),
+  });
+
+  // 근거까지 무료 — 시기·처방(실행 답)만 유료
   if (p.paid) {
-    cards.push({
-      key: "reason",
-      node: (
-        <>
-          <div style={eyebrow}>{EYEBROW.session_reason}</div>
-          <div style={{ height: 14 }} />
-          <div style={{ display: "flex", gap: 8 }}>
-            {p.chart.pillars.map((pl) => {
-              const day = pl.position === "day";
-              return (
-                <div key={pl.position} style={{ flex: 1, textAlign: "center", borderRadius: 12, padding: "12px 0", background: day ? "var(--ink)" : "var(--white)", border: "1px solid var(--paper-dk)" }}>
-                  <div style={{ fontSize: 10, color: day ? "rgba(255,255,255,.6)" : "var(--ink-40)", marginBottom: 5 }}>{POS_LABEL[pl.position]}</div>
-                  <div style={{ fontFamily: "var(--serif)", fontWeight: 900, fontSize: 23, color: day ? "var(--paper)" : "var(--ink)" }}>{pl.stemHanja}</div>
-                  <div style={{ fontFamily: "var(--serif)", fontWeight: 900, fontSize: 23, color: "var(--vermil)" }}>{pl.branchHanja}</div>
-                </div>
-              );
-            })}
-          </div>
-          <div style={{ height: 18 }} />
-          <p style={body}>{byKind("session_reason")?.text}</p>
-        </>
-      ),
-    });
     cards.push({
       key: "timing",
       node: (
@@ -213,10 +215,10 @@ function buildCards(
           <div style={eyebrow}>이 상담 하나 열기</div>
           <div style={{ height: 14 }} />
           <div style={{ border: "1px dashed var(--gold)", borderRadius: 14, padding: 18, textAlign: "center" }}>
-            <p style={{ fontFamily: "var(--serif)", fontWeight: 900, fontSize: 18, lineHeight: 1.5 }}>근거 · 시기 · 처방<br />세 장을 이어서 봅니다</p>
+            <p style={{ fontFamily: "var(--serif)", fontWeight: 900, fontSize: 18, lineHeight: 1.5 }}>시기 · 처방<br />두 장을 이어서 봅니다</p>
             <div style={{ height: 14 }} />
             <div style={{ display: "flex", gap: 8 }}>
-              {["근거", "시기", "처방"].map((t) => (
+              {["시기", "처방"].map((t) => (
                 <div key={t} style={{ flex: 1, textAlign: "center", padding: "12px 0", borderRadius: 12, background: "var(--white)", border: "1px solid var(--paper-dk)", opacity: 0.5, fontFamily: "var(--serif)", fontWeight: 900, color: "var(--ink-40)" }}>{t}</div>
               ))}
             </div>

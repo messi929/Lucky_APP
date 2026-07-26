@@ -178,12 +178,12 @@ describe("오케스트레이터 (DI, §4.1)", () => {
 });
 
 describe("상담 세션 리딩 (interpretSession — 진단→근거→시기→처방)", () => {
-  it("무료는 진단 1비트, 근거·시기·처방은 locked", () => {
+  it("무료는 진단·근거 2비트, 시기·처방은 locked", () => {
     const { units, locked } = decomposeSessionUnits(chart, "marriage_timing", {
       season: "2026H2",
     });
-    expect(units.map((u) => u.kind)).toEqual(["session_diagnosis"]);
-    expect(locked).toEqual(["session_reason", "session_timing", "session_remedy"]);
+    expect(units.map((u) => u.kind)).toEqual(["session_diagnosis", "session_reason"]);
+    expect(locked).toEqual(["session_timing", "session_remedy"]);
   });
 
   it("유료는 4비트 전체, locked 없음", () => {
@@ -210,11 +210,11 @@ describe("상담 세션 리딩 (interpretSession — 진단→근거→시기→
     expect(new Set(keys).size).toBe(4);
   });
 
-  it("interpretSession: 무료는 진단만 조립 + lockedBeats 3개", async () => {
+  it("interpretSession: 무료는 진단·근거 조립 + lockedBeats 2개", async () => {
     const generate: GenerateFn = async () => "당신의 결혼은 늦되 확실합니다.";
     const s = await interpretSession(chart, "marriage_timing", { season: "2026H2" }, { generate });
-    expect(s.beats.map((b) => b.kind)).toEqual(["session_diagnosis"]);
-    expect(s.lockedBeats).toHaveLength(3);
+    expect(s.beats.map((b) => b.kind)).toEqual(["session_diagnosis", "session_reason"]);
+    expect(s.lockedBeats).toHaveLength(2);
     expect(s.beats[0]!.text.length).toBeGreaterThan(0);
     expect(s.disclaimer).toBe(DISCLAIMER);
   });
