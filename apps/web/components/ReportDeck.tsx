@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import type { ReportPayload } from "@lucky/api-client";
+import { SKUS, type ReportPayload } from "@lucky/api-client";
 import type { Mode, Reaction, ResolvedUnit } from "@lucky/core";
 import { AskBox } from "./AskBox";
 import { BrushIntro } from "./BrushIntro";
@@ -272,6 +272,13 @@ export function ReportDeck({ initial }: { initial: ReportPayload }) {
             <div className="sub" style={{ textAlign: "center", fontSize: 13, marginBottom: 10 }}>나머지 셋 + 월별 캘린더는 복채를 내면 열립니다</div>
             <a href={`/pay?token=${payload.token}&sku=full_report`} onClick={() => track("paywall_view", { from: "caution" })} className="btn ink">
               복채 내고 마저 보기 · 3,900원
+            </a>
+            <a
+              href={`/pay?token=${payload.token}&sku=season_pass`}
+              onClick={() => track("paywall_view", { from: "trial" })}
+              style={{ display: "block", textAlign: "center", marginTop: 10, fontSize: 13, fontWeight: 600, color: "var(--gold)" }}
+            >
+              먼저 7일만 둘러볼래요 · {SKUS.season_pass.price.toLocaleString()}원
             </a>
           </>
         )}

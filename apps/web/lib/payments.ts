@@ -47,7 +47,8 @@ export async function fulfillOrder(order: OrderRecord, paymentKey: string): Prom
     record("gift_sent", { sku: order.sku });
     return { gift: true, giftToken };
   }
-  await markPaid(order.token);
+  // 체험 패스는 기간제 — 영구 markPaid 안 함(주문 created_at 윈도우가 곧 열람권).
+  if (order.sku !== "season_pass") await markPaid(order.token);
   record("purchase", { sku: order.sku, price: order.amount });
   return { gift: false, token: order.token };
 }

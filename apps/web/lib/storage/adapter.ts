@@ -45,6 +45,8 @@ export interface StorageAdapter {
   // 주제 단위 해금 (상담 세션 — 고민 1개씩 결제)
   isConcernUnlocked(token: string, concern: string): Promise<boolean>;
   unlockConcern(token: string, concern: string): Promise<void>;
+  // 체험 패스 — orders(sku=season_pass·status=paid)의 created_at 윈도우로 판정(무갱신·기간제, DDL 불필요)
+  hasActiveSeasonPass(token: string, withinMs: number): Promise<boolean>;
   // 궁합 초대
   getInvite(token: string): Promise<InviteRecord | null>;
   putInvite(token: string, rec: InviteRecord): Promise<void>;

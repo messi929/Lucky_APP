@@ -35,6 +35,18 @@ export function supabaseAdapter(db: SupabaseClient): StorageAdapter {
     unlockConcern: async (t, c) => {
       await db.from("concern_unlocks").upsert({ token: t, concern: c });
     },
+    hasActiveSeasonPass: async (t, withinMs) => {
+      const since = new Date(Date.now() - withinMs).toISOString();
+      const { data } = await db
+        .from("orders")
+        .select("order_id")
+        .eq("token", t)
+        .eq("sku", "season_pass")
+        .eq("status", "paid")
+        .gte("created_at", since)
+        .limit(1);
+      return (data?.length ?? 0) > 0;
+    },
     getInvite: async (t) => {
       const { data } = await db
         .from("invites")

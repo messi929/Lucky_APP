@@ -18,6 +18,7 @@ export function memoryAdapter(): StorageAdapter {
   const gifts = new Map<string, GiftRecord>();
   const pushTokens = new Map<string, PushTokenRecord>();
   const orders = new Map<string, OrderRecord>();
+  const orderAt = new Map<string, number>(); // orderId → 생성 시각(ms)
 
   return {
     getInput: async (t) => inputs.get(t) ?? null,
@@ -26,6 +27,15 @@ export function memoryAdapter(): StorageAdapter {
     setPaid: async (t) => void paid.add(t),
     isConcernUnlocked: async (t, c) => concernUnlocks.has(`${t}:${c}`),
     unlockConcern: async (t, c) => void concernUnlocks.add(`${t}:${c}`),
+    hasActiveSeasonPass: async (t, withinMs) => {
+      const cutoff = Date.now() - withinMs;
+      for (const [id, o] of orders) {
+        if (o.token === t && o.sku === "season_pass" && o.status === "paid" && (orderAt.get(id) ?? 0) >= cutoff) {
+          return true;
+        }
+      }
+      return false;
+    },
     getInvite: async (t) => invites.get(t) ?? null,
     putInvite: async (t, v) => void invites.set(t, v),
     getCompat: async (t) => compats.get(t) ?? null,
@@ -38,7 +48,10 @@ export function memoryAdapter(): StorageAdapter {
     },
     putPushToken: async (rec) => void pushTokens.set(rec.expoToken, rec),
     listPushTokens: async () => [...pushTokens.values()],
-    putOrder: async (rec) => void orders.set(rec.orderId, rec),
+    putOrder: async (rec) => {
+      orders.set(rec.orderId, rec);
+      if (!orderAt.has(rec.orderId)) orderAt.set(rec.orderId, Date.now());
+    },
     getOrder: async (id) => orders.get(id) ?? null,
     setOrderPaid: async (id, paymentKey) => {
       const o = orders.get(id);

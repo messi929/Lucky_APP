@@ -1,6 +1,6 @@
 import type { ReportRequest } from "@lucky/api-client";
 import { collectMetrics, type InterpretContext } from "@lucky/core";
-import { createToken, getInput, isPaid } from "@/lib/store";
+import { createToken, getInput, hasFullAccess } from "@/lib/store";
 import { buildReport } from "@/lib/report";
 import { currentSeason } from "@/lib/age";
 import { record } from "@/lib/events";
@@ -27,7 +27,7 @@ export async function POST(req: Request): Promise<Response> {
     ...(body.ctx?.reaction ? { reaction: body.ctx.reaction } : {}),
     ...(body.ctx?.concern ? { concern: body.ctx.concern } : {}),
     ...(body.ctx?.mode ? { mode: body.ctx.mode } : {}),
-    ...((await isPaid(token)) ? { paid: true } : {}),
+    ...((await hasFullAccess(token)) ? { paid: true } : {}),
   };
 
   try {

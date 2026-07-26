@@ -131,7 +131,8 @@ export type SkuId =
   | "taekil" // 택일(이사/개업/계약)
   | "exam" // 시험운
   | "newyear" // 신년 대운 리포트
-  | "session_unlock"; // 상담 주제 1개 해금(근거까지 무료 후 시기·처방)
+  | "session_unlock" // 상담 주제 1개 해금(근거까지 무료 후 시기·처방)
+  | "season_pass"; // 저가 체험 패스 — N일 전체 열람(무갱신·기간제)
 
 export interface Sku {
   id: SkuId;
@@ -150,6 +151,7 @@ export interface Sku {
 export const SKUS: Record<SkuId, Sku> = {
   full_report: { id: "full_report", label: "복채 풀 리포트 + 문답 1회", price: 3900, tier: "paid" },
   session_unlock: { id: "session_unlock", label: "이 주제 상담 (시기·처방)", price: 990, tier: "paid" },
+  season_pass: { id: "season_pass", label: "7일 체험 패스 · 전체 열람", price: 1900, tier: "paid" },
   compat_detail: { id: "compat_detail", label: "궁합 상세 + 기념일 카드", price: 2900, tier: "paid" },
   timing: { id: "timing", label: "이직/결혼 타이밍", price: 6900, tier: "paid" },
   child_fortune: {
@@ -170,6 +172,9 @@ export const SKUS: Record<SkuId, Sku> = {
   exam: { id: "exam", label: "시험운", price: 4900, tier: "paid" },
   newyear: { id: "newyear", label: "신년 대운 리포트", price: 9900, tier: "paid" },
 };
+
+/** 체험 패스 유효 기간(일). 무갱신·기간제 — 이 값 한 곳에서 조정. */
+export const SEASON_PASS_DAYS = 7;
 
 /** 결제 요청 (mock provider). 청약철회 동의는 필수(원칙 9) */
 export interface CheckoutRequest {

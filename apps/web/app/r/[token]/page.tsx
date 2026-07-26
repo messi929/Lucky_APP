@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ReportDeck } from "@/components/ReportDeck";
 import { ageFromBirth, currentSeason, defaultMode } from "@/lib/age";
 import { buildReport } from "@/lib/report";
-import { getInput, isPaid } from "@/lib/store";
+import { getInput, hasFullAccess } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
 
@@ -32,7 +32,7 @@ export default async function ResultPage({
   const ctx: InterpretContext = {
     season: currentSeason(),
     mode: defaultMode(age),
-    ...((await isPaid(token)) ? { paid: true } : {}),
+    ...((await hasFullAccess(token)) ? { paid: true } : {}),
   };
   const payload = await buildReport(token, input, ctx);
 

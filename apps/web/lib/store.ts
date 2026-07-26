@@ -1,5 +1,6 @@
 import { nanoid } from "nanoid";
 import type { RelationType, SajuInput } from "@lucky/core";
+import { SEASON_PASS_DAYS } from "@lucky/api-client";
 import { storage } from "./storage";
 
 /**
@@ -25,13 +26,24 @@ export function isPaid(token: string): Promise<boolean> {
   return storage.isPaid(token);
 }
 
+// ── 체험 패스 (기간제·무갱신) ──
+/** 유효한 체험 패스 보유 여부 (SEASON_PASS_DAYS 이내 결제) */
+export function hasActiveSeasonPass(token: string): Promise<boolean> {
+  return storage.hasActiveSeasonPass(token, SEASON_PASS_DAYS * 86_400_000);
+}
+/** 전체 열람 권한: 영구 결제(full_report) OR 유효 체험 패스 */
+export async function hasFullAccess(token: string): Promise<boolean> {
+  if (await storage.isPaid(token)) return true;
+  return hasActiveSeasonPass(token);
+}
+
 // ── 주제 단위 해금 (상담 세션 — 고민 1개씩) ──
 export function unlockConcern(token: string, concern: string): Promise<void> {
   return storage.unlockConcern(token, concern);
 }
-/** 세션 해제 여부: 토큰 전역 결제 OR 그 주제 개별 해금 */
+/** 세션 해제 여부: 전체 열람(영구·체험패스) OR 그 주제 개별 해금 */
 export async function isSessionUnlocked(token: string, concern: string): Promise<boolean> {
-  if (await storage.isPaid(token)) return true;
+  if (await hasFullAccess(token)) return true;
   return storage.isConcernUnlocked(token, concern);
 }
 
