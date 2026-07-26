@@ -60,6 +60,14 @@ describe("seasonHook — 재방문 한 줄", () => {
     expect(h).toMatch(/\d+일 뒤 백로/);
   });
 
+  it("turningSoon 으로/로 조사를 받침으로 구분한다", () => {
+    const base = { currentTerm: "-", daysSinceCurrent: 1, daysUntilNext: 3, justTurned: false, turningSoon: true };
+    // 입춘(받침 ㄴ) → '입춘으로', 백로(받침 없음) → '백로로', 대설(받침 ㄹ) → '대설로'
+    expect(seasonHook({ ...base, nextTerm: "입춘" })).toContain("입춘으로 넘어가요");
+    expect(seasonHook({ ...base, nextTerm: "백로" })).toContain("백로로 넘어가요");
+    expect(seasonHook({ ...base, nextTerm: "대설" })).toContain("대설로 넘어가요");
+  });
+
   it("조사 이/가를 받침으로 구분한다 (대설 vs 입추)", () => {
     // 대설(받침 ㄹ) → '대설이', 입추(받침 없음) → '입추가'
     const h1 = seasonHook(seasonPhase(new Date("2026-12-08T12:00:00Z")));

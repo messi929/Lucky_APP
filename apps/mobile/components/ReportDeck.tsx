@@ -4,6 +4,7 @@ import { router } from "expo-router";
 import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   FlatList,
+  Linking,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -14,7 +15,7 @@ import {
   type NativeSyntheticEvent,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { color, FONT } from "@/lib/theme";
+import { API_BASE, color, FONT } from "@/lib/theme";
 import { fetchReport } from "@/lib/api";
 import { BrushIntro } from "./BrushIntro";
 import { ElementChart } from "./ElementChart";
@@ -105,7 +106,7 @@ export function ReportDeck({ initial }: { initial: ReportPayload }) {
             <Text style={st.dailyLine}>{payload.daily.line}</Text>
             {payload.daily.concern && (
               <Pressable
-                onPress={() => router.push(`/session/${payload.daily.concern!.id}`)}
+                onPress={() => router.push(`/session/${payload.daily.concern!.id}?token=${payload.token}`)}
                 style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8, marginTop: 14, paddingTop: 12, borderTopWidth: 1, borderTopColor: "rgba(245,240,232,0.15)" }}
               >
                 <Text style={{ color: color.gold, fontSize: 13, fontFamily: FONT.sansBold }}>
@@ -205,7 +206,7 @@ export function ReportDeck({ initial }: { initial: ReportPayload }) {
             {payload.adaptive.concerns.map((co) => (
               <Pressable
                 key={co.id}
-                onPress={() => router.push(`/session/${co.id}`)}
+                onPress={() => router.push(`/session/${co.id}?token=${payload.token}`)}
                 style={st.tile}
               >
                 <Text style={{ fontFamily: FONT.sansBold, fontSize: 15, color: color.ink }}>{co.label}</Text>
@@ -283,7 +284,11 @@ export function ReportDeck({ initial }: { initial: ReportPayload }) {
           />
         </View>
         <View style={st.grow} />
-        <Btn label="이미지로 저장 · 스토리 9:16" variant="ink" />
+        <Btn
+          label="이미지로 저장 · 스토리 9:16"
+          variant="ink"
+          onPress={() => Linking.openURL(`${API_BASE}/api/og/story/${payload.token}`)}
+        />
       </>
     ),
   });
