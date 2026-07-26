@@ -103,6 +103,17 @@ export function ReportDeck({ initial }: { initial: ReportPayload }) {
           <View style={st.dailyCard}>
             <Text style={st.dailyLabel}>오늘의 한 줄 · {payload.daily.todayGanji}일</Text>
             <Text style={st.dailyLine}>{payload.daily.line}</Text>
+            {payload.daily.concern && (
+              <Pressable
+                onPress={() => router.push(`/session/${payload.daily.concern!.id}`)}
+                style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8, marginTop: 14, paddingTop: 12, borderTopWidth: 1, borderTopColor: "rgba(245,240,232,0.15)" }}
+              >
+                <Text style={{ color: color.gold, fontSize: 13, fontFamily: FONT.sansBold }}>
+                  오늘의 결이 궁금하면 · {payload.daily.concern.label} 상담
+                </Text>
+                <Text style={{ color: color.gold, fontSize: 13 }}>→</Text>
+              </Pressable>
+            )}
           </View>
         </>
       ),

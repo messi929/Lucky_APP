@@ -129,10 +129,20 @@ export function ReportDeck({ initial }: { initial: ReportPayload }) {
             );
           })()}
 
-        {/* 오늘의 한 줄 */}
+        {/* 오늘의 한 줄 (무료 훅) → 오늘 결에 맞는 주제 상담 (데일리→단건 퍼널) */}
         <div style={{ marginTop: 12, background: "var(--ink)", borderRadius: 16, padding: 18 }}>
           <div style={{ fontSize: 11, letterSpacing: "0.2em", color: "#CCC5BB", marginBottom: 8 }}>오늘의 한 줄 · {payload.daily.todayGanji}일</div>
           <div style={{ fontFamily: "var(--serif)", fontWeight: 700, fontSize: 16, color: "var(--paper)", lineHeight: 1.5 }}>{payload.daily.line}</div>
+          {payload.daily.concern && (
+            <a
+              href={`/s/${payload.token}/${payload.daily.concern.id}`}
+              onClick={() => track("daily_funnel", { concern: payload.daily.concern!.id })}
+              style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginTop: 14, paddingTop: 12, borderTop: "1px solid rgba(245,240,232,.15)", color: "var(--gold)", fontSize: 13, fontWeight: 700 }}
+            >
+              <span>오늘의 결이 궁금하면 · {payload.daily.concern.label} 상담</span>
+              <span aria-hidden>→</span>
+            </a>
+          )}
         </div>
         <div className="grow" />
         <Dots total={7} active={1} />

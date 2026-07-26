@@ -13,7 +13,7 @@ import type { ChartSummary, PillarView, ReportPayload } from "@lucky/api-client"
 import { memCache } from "./cache";
 import { generate } from "./generate";
 import { ageFromBirth, defaultMode } from "./age";
-import { dailyFor } from "./daily";
+import { dailyConcernFor, dailyFor } from "./daily";
 
 const POSITIONS = ["year", "month", "day", "hour"] as const;
 
@@ -90,7 +90,8 @@ export async function buildReport(
     paid: ctx.paid === true,
     daily: (() => {
       const dl = dailyFor(input);
-      return { line: dl.line, todayGanji: dl.todayGanji };
+      const concern = dailyConcernFor(dl.tenGod, age); // 데일리→단건 퍼널: 오늘 결에 맞는 주제
+      return { line: dl.line, todayGanji: dl.todayGanji, ...(concern ? { concern } : {}) };
     })(),
     retro: retroProbes(chart).map((p) => ({
       pivotYear: p.pivotYear,

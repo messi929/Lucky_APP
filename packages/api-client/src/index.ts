@@ -79,7 +79,7 @@ export interface ReportPayload {
   /** 결제 unlock 여부 (유료 섹션·문답 해제) */
   paid: boolean;
   /** 오늘의 한 줄 (§10.1) */
-  daily: { line: string; todayGanji: string };
+  daily: { line: string; todayGanji: string; concern?: { id: string; label: string } };
   /** 과거 검증 프로브 (신뢰 방아쇠). 대운 전환 기반 질문형, LLM 0. 비어 있을 수 있음 */
   retro: RetroProbeView[];
 }
