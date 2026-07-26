@@ -19,8 +19,8 @@
   --el-earth: #b08d46;
   --el-metal: #8c8c88;
   --el-water: #3d5a73;
-  --serif: "Noto Serif KR", serif;
-  --sans: "Noto Sans KR", system-ui, sans-serif;
+  --serif: var(--font-noto-serif), "Noto Serif KR", serif;
+  --sans: var(--font-noto-sans), "Noto Sans KR", system-ui, sans-serif;
   --r-card: 14px;
   --r-tile: 16px;
   --r-pill: 100px;
