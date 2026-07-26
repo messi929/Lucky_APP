@@ -107,7 +107,7 @@ export default async function ConsultHubPage({
             <span style={{ fontFamily: "var(--sans)", fontWeight: 700, fontSize: 16, color: "var(--ink)" }}>
               {c.label}
             </span>
-            <span style={{ fontFamily: "var(--sans)", fontSize: 11.5, color: "var(--ink-40)" }}>
+            <span style={{ fontFamily: "var(--sans)", fontSize: 12, color: "var(--ink-70)" }}>
               {CONCERN_HUB[c.id].sub}
             </span>
           </Link>

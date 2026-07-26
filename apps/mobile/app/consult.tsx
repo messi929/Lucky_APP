@@ -141,7 +141,7 @@ const s = StyleSheet.create({
   tile: { width: "47.5%", backgroundColor: color.white, borderWidth: 1, borderColor: color.hanjiDeep, borderRadius: 16, padding: 15, gap: 5 },
   tHanja: { fontFamily: FONT.serifBlack, fontSize: 16, color: color.gold },
   tLabel: { fontFamily: FONT.sansBold, fontSize: 16, color: color.ink },
-  tSub: { fontFamily: FONT.sans, fontSize: 11.5, color: color.inkMuted },
+  tSub: { fontFamily: FONT.sans, fontSize: 12, color: color.inkSoft },
   fine: { fontFamily: FONT.sans, fontSize: 12, color: color.inkMuted, textAlign: "center", lineHeight: 18 },
   divider: { height: 1, backgroundColor: color.hanjiDeep },
   otherLink: { fontFamily: FONT.sansMedium, fontSize: 13.5, color: color.inkSoft, textAlign: "center" },

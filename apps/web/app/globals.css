@@ -75,14 +75,15 @@ body {
   line-height: 1.45;
 }
 .sub {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--ink-70);
   line-height: 1.6;
 }
 .fine {
-  font-size: 11px;
-  color: var(--ink-40);
-  line-height: 1.5;
+  /* 캡션 — 크기로 위계, 대비는 AA 유지(ink-70). ink-40은 eyebrow 등 장식 라벨만 */
+  font-size: 12px;
+  color: var(--ink-70);
+  line-height: 1.55;
 }
 
 /* ═══ 낙관 스탬프 (화면당 1개) ═══ */
