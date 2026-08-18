@@ -338,10 +338,13 @@ export function ReportDeck({ initial }: { initial: ReportPayload }) {
             </a>
           )}
           <CompatInvite token={payload.token} />
-          <a href={`/pay?token=${payload.token}&sku=full_report&gift=1`} className="card" style={{ borderRadius: 16, padding: 18, display: "block" }}>
-            <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 4 }}>선물하기</div>
-            <div className="fine" style={{ fontSize: 12 }}>생일인 그 사람에게 사주 리포트를</div>
-          </a>
+          {/* 선물은 결제 상품이라 판매를 하지 않는 동안엔 노출하지 않는다 */}
+          {payload.commerce && (
+            <a href={`/pay?token=${payload.token}&sku=full_report&gift=1`} className="card" style={{ borderRadius: 16, padding: 18, display: "block" }}>
+              <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 4 }}>선물하기</div>
+              <div className="fine" style={{ fontSize: 12 }}>생일인 그 사람에게 사주 리포트를</div>
+            </a>
+          )}
           {/* 무료 재방문 훅 — 결제 유도가 아니라 다시 올 이유를 만드는 자리다(DREAM-DESIGN) */}
           <a
             href={`/dream/${payload.token}`}

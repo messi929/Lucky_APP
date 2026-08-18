@@ -1,6 +1,6 @@
 import { SKUS, type CheckoutRequest } from "@lucky/api-client";
 import { nanoid } from "nanoid";
-import { isBusinessInfoComplete } from "@/lib/business-info";
+import { isCommerceEnabled } from "@/lib/commerce";
 import { record } from "@/lib/events";
 import { fulfillOrder, isTossEnabled } from "@/lib/payments";
 import { getCompat, getInput } from "@/lib/store";
@@ -24,12 +24,11 @@ export async function POST(req: Request): Promise<Response> {
 
   const sku = SKUS[body.sku];
   if (!sku) return Response.json({ error: "알 수 없는 상품" }, { status: 400 });
-  // 실결제가 열려 있는데 사업자정보가 비어 있으면 여기서 막는다.
-  // 표시 의무를 못 지킨 채 돈을 받는 상태가 되느니 결제를 안 받는 게 낫다.
-  // (mock은 돈이 움직이지 않으므로 베타 테스트 흐름은 그대로 둔다)
-  if (isTossEnabled() && !isBusinessInfoComplete()) {
+  // 판매를 하지 않는 동안에는 주문 자체를 만들지 않는다(사업자등록 전 전면 무료 운영).
+  // 이 판정은 사업자정보 기입 여부에 묶여 있어, 실값이 채워지는 순간 자동으로 열린다.
+  if (!isCommerceEnabled()) {
     return Response.json(
-      { error: "결제 준비 중이에요. 잠시 뒤 다시 시도해 주세요." },
+      { error: "지금은 무료 베타라 결제를 받지 않아요. 모든 상담이 무료로 열려 있어요." },
       { status: 503 },
     );
   }

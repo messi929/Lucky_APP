@@ -1,6 +1,7 @@
 import { computeCompat, computeSaju } from "@lucky/core";
 import Link from "next/link";
 import { getCompat, getInput } from "@/lib/store";
+import { isCommerceEnabled } from "@/lib/commerce";
 import { InkCircle } from "@/components/ui";
 import { CompatShare } from "@/components/CompatShare";
 
@@ -64,7 +65,9 @@ export default async function CompatPage({
       <div style={{ height: 6, width: "100%" }} />
       {/* A의 리포트 토큰을 URL에 실으면 이 페이지를 본 누구나 A의 리포트를 열 수 있다 —
           궁합 토큰만 넘기고 소유자는 서버(/api/checkout)가 역조회한다. */}
-      <Link href={`/pay?compat=${compatToken}&sku=compat_detail`} className="btn ghost">관계 상세 보기 · 2,900원</Link>
+      {isCommerceEnabled() && (
+        <Link href={`/pay?compat=${compatToken}&sku=compat_detail`} className="btn ghost">관계 상세 보기 · 2,900원</Link>
+      )}
     </main>
   );
 }

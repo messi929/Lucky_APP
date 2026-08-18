@@ -11,6 +11,7 @@ import {
 } from "@lucky/core";
 import type { ChartSummary, PillarView, ReportPayload } from "@lucky/api-client";
 import { memCache } from "./cache";
+import { isCommerceEnabled } from "./commerce";
 import { generate } from "./generate";
 import { ageFromBirth, defaultMode } from "./age";
 import { dailyConcernFor, dailyFor } from "./daily";
@@ -88,6 +89,7 @@ export async function buildReport(
       })),
     },
     paid: ctx.paid === true,
+    commerce: isCommerceEnabled(),
     daily: (() => {
       const dl = dailyFor(input);
       const concern = dailyConcernFor(dl.tenGod, age); // 데일리→단건 퍼널: 오늘 결에 맞는 주제

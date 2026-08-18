@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BUSINESS_INFO } from "@/lib/business-info";
 
 export const metadata = { title: "개인정보처리방침 — 팔자 리포트" };
 
@@ -26,7 +27,16 @@ export default function PrivacyPage() {
         필요한 범위에서만 위탁하며, 각 수탁자는 목적 외 이용이 금지됩니다.
       </Section>
       <Section title="5. 이용자 권리">
-        열람·삭제 요청은 사업자정보의 이메일로 접수할 수 있습니다.
+        {/* 연락처가 없으면 이 조항은 문구만 있고 실제로는 행사할 수 없다.
+            없는 주소를 적느니 준비 중임을 밝힌다 — 값이 채워지면 자동으로 실주소가 나온다. */}
+        {BUSINESS_INFO.email.startsWith("TODO") ? (
+          <>열람·삭제 요청 접수 창구를 준비 중입니다. 창구가 열리기 전까지는 요청을 접수할 수 없습니다.</>
+        ) : (
+          <>
+            열람·삭제 요청은 <b className="text-ink">{BUSINESS_INFO.email}</b>로 접수할 수 있습니다.
+            요청 시 해당 결과 토큰과 연결된 저장 내용을 삭제합니다.
+          </>
+        )}
       </Section>
       <Section title="6. 궁합 상대 정보">
         궁합·가족 상대의 정보는 <b className="text-ink">본인 또는 동의를 받은 정보만</b> 입력해야 합니다.

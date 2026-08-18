@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ChildForm } from "@/components/ChildForm";
+import { isCommerceEnabled } from "@/lib/commerce";
 import { getInput, isPaid } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
@@ -18,7 +19,10 @@ export default async function ChildPage({ searchParams }: { searchParams: Promis
     );
   }
 
-  if (!(await isPaid(token))) {
+  // 판매를 하지 않는 동안엔 잠글 근거가 없다. 기존 유료 판정(isPaid)은 그대로 둔다 —
+  // 여기서 hasFullAccess로 바꾸면 체험패스 구매자에게 별도 SKU까지 열리는 정책 변경이 된다.
+  const locked = isCommerceEnabled() && !(await isPaid(token));
+  if (locked) {
     return (
       <main className="screen center">
         <div className="grow" />

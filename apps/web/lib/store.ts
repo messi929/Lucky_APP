@@ -1,6 +1,7 @@
 import { nanoid } from "nanoid";
 import type { RelationType, SajuInput } from "@lucky/core";
 import { SEASON_PASS_DAYS } from "@lucky/api-client";
+import { isCommerceEnabled } from "./commerce";
 import { storage } from "./storage";
 
 /**
@@ -33,6 +34,8 @@ export function hasActiveSeasonPass(token: string): Promise<boolean> {
 }
 /** 전체 열람 권한: 영구 결제(full_report) OR 유효 체험 패스 */
 export async function hasFullAccess(token: string): Promise<boolean> {
+  // 판매를 하지 않는 동안 잠글 근거가 없다 — 무료 베타는 전부 열어 준다.
+  if (!isCommerceEnabled()) return true;
   if (await storage.isPaid(token)) return true;
   return hasActiveSeasonPass(token);
 }

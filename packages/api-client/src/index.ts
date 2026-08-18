@@ -81,6 +81,11 @@ export interface ReportPayload {
   adaptive: AdaptiveInfo;
   /** 결제 unlock 여부 (유료 섹션·문답 해제) */
   paid: boolean;
+  /**
+   * 판매 활성 여부. false면 유료 CTA를 아예 렌더하지 않는다 —
+   * 사업자등록 전까지 전면 무료로 운영하므로, 팔 수 없는 것을 파는 UI를 두지 않는다.
+   */
+  commerce: boolean;
   /** 오늘의 한 줄 (§10.1) */
   daily: { line: string; todayGanji: string; concern?: { id: string; label: string } };
   /** 과거 검증 프로브 (신뢰 방아쇠). 대운 전환 기반 질문형, LLM 0. 비어 있을 수 있음 */

@@ -1,6 +1,7 @@
 import { SKUS, type SkuId } from "@lucky/api-client";
 import Link from "next/link";
 import { Checkout } from "@/components/Checkout";
+import { isCommerceEnabled } from "@/lib/commerce";
 
 export const dynamic = "force-dynamic";
 
@@ -12,6 +13,22 @@ export default async function PayPage({
 }) {
   const sp = await searchParams;
   const sku = (sp.sku as SkuId) ?? "full_report";
+
+  // 판매를 하지 않는 동안에는 결제 화면 자체를 열지 않는다.
+  // CTA를 숨기는 것만으로는 부족하다 — 링크를 아는 사람이 직접 들어올 수 있다.
+  if (!isCommerceEnabled()) {
+    return (
+      <main className="screen center">
+        <p className="h-serif" style={{ fontSize: 24, marginBottom: 12 }}>지금은 전부 무료예요.</p>
+        <p className="sub" style={{ marginBottom: 20, textAlign: "center", lineHeight: 1.6 }}>
+          무료 베타 기간이라 결제 없이 모든 상담을 보실 수 있어요.
+        </p>
+        <Link href="/" className="btn ink" style={{ width: "auto", padding: "12px 24px" }}>
+          처음으로
+        </Link>
+      </main>
+    );
+  }
 
   if ((!sp.token && !sp.compat) || !SKUS[sku]) {
     return (
