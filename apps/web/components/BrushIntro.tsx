@@ -1,20 +1,40 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import type { PillarView } from "@lucky/api-client";
 
 /**
  * R0 팔자 붓글씨 연출 (design-spec §P1, 기획서 §5 ②).
  * 시·일·월·연 4기둥을 한지 위에 한 자씩. SVG 스트로크 드로잉(패스 애니) + 먹 번짐 페이드.
  * 자당 ~0.32s, 총 2~3s 뜸(노동 착시). prefers-reduced-motion 시 즉시 표시. 스킵 제공.
+ *
+ * 리포트는 이 화면에 오기 전에 이미 완성돼 있다 — 연출이 끝나면 반드시 스스로 넘어가야 한다.
+ * (자동 전환이 없으면 "적고 있어요" 화면에 갇혀 이탈한다. 사용성 테스트 2026-08-08)
  */
 const POS_LABEL: Record<string, string> = { hour: "시", day: "일", month: "월", year: "연" };
 const ORDER = ["hour", "day", "month", "year"];
+const PER_CHAR = 320;
+/** 마지막 글자(8번째) 획이 그려지고 한 박자 — perChar*7 + 220(획 지연) + 600(획) + 여운 */
+const INTRO_MS = PER_CHAR * 7 + 220 + 600 + 400;
 
 export function BrushIntro({ pillars, onDone }: { pillars: PillarView[]; onDone: () => void }) {
   const cols = ORDER.map((pos) => pillars.find((p) => p.position === pos)).filter(
     (p): p is PillarView => !!p,
   );
-  const perChar = 320;
+  const perChar = PER_CHAR;
+
+  // 부모가 인라인 콜백을 넘기므로 ref로 고정 — 리렌더마다 타이머가 되감기지 않게.
+  const doneRef = useRef(onDone);
+  doneRef.current = onDone;
+  useEffect(() => {
+    const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    if (reduced) {
+      doneRef.current();
+      return;
+    }
+    const t = setTimeout(() => doneRef.current(), INTRO_MS);
+    return () => clearTimeout(t);
+  }, []);
 
   return (
     <section className="screen center">
