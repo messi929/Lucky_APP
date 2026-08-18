@@ -25,6 +25,10 @@ export function SessionView({ token, concern }: { token: string; concern: string
   const [err, setErr] = useState("");
   const [i, setI] = useState(0);
   const [unlocking, setUnlocking] = useState(false);
+  // 원칙 9(전자상거래법): 고지만으로는 부족하고 "명시적 동의 체크 단계"가 있어야 한다.
+  // 이전엔 버튼 문구만 '동의하고 열기'였고 요청은 늘 withdrawalConsent:true를 보냈다 —
+  // 사용자가 실제로 동의를 표시한 적이 없으므로 동의 자체가 성립하지 않았다.
+  const [consent, setConsent] = useState(false);
 
   const load = useCallback(async () => {
     const r = await fetch("/api/session", {
@@ -42,12 +46,16 @@ export function SessionView({ token, concern }: { token: string; concern: string
   }, [load]);
 
   const unlock = useCallback(async () => {
+    if (!consent) {
+      setErr("청약철회 제한 안내에 동의해 주세요.");
+      return;
+    }
     setUnlocking(true);
     try {
       const r = await fetch("/api/session/unlock", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ token, concern, withdrawalConsent: true }),
+        body: JSON.stringify({ token, concern, withdrawalConsent: consent }),
       });
       if (!r.ok) throw new Error("해금에 실패했어요.");
       await load(); // 유료 4비트로 재조회
@@ -57,9 +65,12 @@ export function SessionView({ token, concern }: { token: string; concern: string
     } finally {
       setUnlocking(false);
     }
-  }, [token, concern, load]);
+  }, [token, concern, load, consent]);
 
-  const cards = useMemo(() => (p ? buildCards(p, router, unlock, unlocking) : []), [p, router, unlock, unlocking]);
+  const cards = useMemo(
+    () => (p ? buildCards(p, router, unlock, unlocking, consent, setConsent) : []),
+    [p, router, unlock, unlocking, consent],
+  );
 
   if (err) {
     return (
@@ -117,6 +128,8 @@ function buildCards(
   router: ReturnType<typeof useRouter>,
   unlock: () => void,
   unlocking: boolean,
+  consent: boolean,
+  setConsent: (v: boolean) => void,
 ): CardItem[] {
   const byKind = (k: string) => p.beats.find((b) => b.kind === k);
   const diagnosis = byKind("session_diagnosis");
@@ -229,16 +242,35 @@ function buildCards(
             <b style={{ color: "var(--ink)" }}>전체 {SKUS.full_report.price.toLocaleString()}원</b>에 모든 상담과 리포트가 열려요.
           </p>
           <div style={{ height: 10 }} />
-          <div className="card"><p style={{ fontSize: 12.5, color: "var(--ink-70)", lineHeight: 1.5 }}>구매 전 안내 · 콘텐츠 특성상 열람 즉시 청약철회가 제한됩니다. 아래를 눌러 동의하고 진행합니다.</p></div>
+          {/* 원칙 9: 고지 + 명시적 동의 체크. 체크 전에는 결제 버튼이 열리지 않는다. */}
+          <div style={{ background: "var(--white)", border: "1px solid var(--vermil)", borderRadius: 12, padding: "12px 14px", display: "flex", gap: 10, alignItems: "flex-start" }}>
+            <button
+              onClick={() => setConsent(!consent)}
+              aria-pressed={consent}
+              aria-label="청약철회 제한 안내 동의"
+              style={{ minWidth: 20, height: 20, borderRadius: 6, border: "none", cursor: "pointer", background: consent ? "var(--vermil)" : "var(--paper-dk)", color: "var(--paper)", fontSize: 12, fontWeight: 700 }}
+            >
+              {consent ? "✓" : ""}
+            </button>
+            <span style={{ fontSize: 12, color: "var(--ink-70)", lineHeight: 1.5 }}>
+              디지털 콘텐츠 특성상 <b style={{ color: "var(--ink)" }}>열람 후에는 청약철회가 제한</b>됨을 확인했고 이에 동의합니다. (전자상거래법)
+            </span>
+          </div>
         </>
       ),
       action: (
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          <button className="btn" style={{ background: "var(--gold)", color: "#fff" }} disabled={unlocking} onClick={unlock}>
-            {unlocking ? "여는 중…" : `동의하고 열기 · 이 주제 ${SKUS.session_unlock.price.toLocaleString()}원`}
+          <button
+            className="btn"
+            style={{ background: consent ? "var(--gold)" : "var(--paper-dk)", color: consent ? "#fff" : "var(--ink-40)" }}
+            disabled={unlocking || !consent}
+            onClick={unlock}
+          >
+            {unlocking ? "여는 중…" : consent ? `열기 · 이 주제 ${SKUS.session_unlock.price.toLocaleString()}원` : "위 안내에 동의해 주세요"}
           </button>
+          {/* 상품명은 SKUS 단일 소스에서. 화면마다 손으로 쓰면 문구가 갈린다. */}
           <button className="btn ink" onClick={() => router.push(`/pay?token=${p.token}&sku=full_report`)}>
-            전체 리포트 + 모든 상담 · {SKUS.full_report.price.toLocaleString()}원
+            {SKUS.full_report.label} · {SKUS.full_report.price.toLocaleString()}원
           </button>
           <button className="btn ghost" onClick={() => router.push(`/s/${p.token}`)}>다른 고민부터 볼래요</button>
         </div>
