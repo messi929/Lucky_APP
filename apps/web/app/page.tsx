@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ResumeCard } from "@/components/ResumeCard";
 import { SiteFooter } from "@/components/SiteFooter";
 import { Stamp } from "@/components/ui";
 
@@ -51,6 +52,7 @@ export default function Home() {
       <Link href="/input" className="btn ink">
         30초 만에 내 팔자 보기 — 무료
       </Link>
+      <ResumeCard />
       <div style={{ height: 8 }} />
       <p className="fine" style={{ textAlign: "center" }}>
         회원가입 없음 · 이름/전화번호 안 물어봄
