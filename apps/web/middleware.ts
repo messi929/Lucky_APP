@@ -27,6 +27,8 @@ const PUBLIC_PREFIXES = [
   "/api/compat",
   "/api/event",
   "/api/push",
+  // 스케줄러 호출 (CRON_SECRET로 별도 보호) — 베타 쿠키를 가질 수 없다
+  "/api/cron",
   // 법적 고지
   "/privacy",
   "/terms",
