@@ -12,6 +12,7 @@ import type { Element } from "../saju/constants.js";
 import type { ConcernId } from "../content/concerns.js";
 import { cacheKeyOf } from "./cache-key.js";
 import { applyGuardrails, DISCLAIMER, DISCLAIMER_CLASSIC } from "./guardrails.js";
+import { qualityIssue, stripMarkdown } from "./sanitize.js";
 import { buildPrompt, modeOf, PROMPT_VERSION, type PriorBeat } from "./persona.js";
 import { decomposeSessionUnits, decomposeUnits, deriveFacts } from "./units.js";
 import type {
@@ -135,24 +136,30 @@ async function resolveLlm(
   const tier = ctx.paid ? "paid" : "free";
   const level = unit.guardrailLevel;
 
-  // 가드레일 + 처방 정합성(색·방위 단일 소스)을 함께 통과해야 채택.
-  // 반려 사유를 계측용으로 구분: 가드레일 위반이 우선, 아니면 색·방위 불일치.
-  const rejectionOf = (t: string): "guardrail" | "remedy" | null => {
+  // 가드레일 + 처방 정합성(색·방위 단일 소스) + 생성 품질을 함께 통과해야 채택.
+  // 반려 사유를 계측용으로 구분: 가드레일 → 색·방위 → 품질(잘림·깨짐) 순.
+  const rejectionOf = (t: string): "guardrail" | "remedy" | "quality" | null => {
     if (!applyGuardrails(t, level).ok) return "guardrail";
     if (!remedyConsistent(t, unit, chart)) return "remedy";
+    if (qualityIssue(t)) return "quality";
     return null;
   };
 
+  // 마크다운 잔재는 뜻이 바뀌지 않으므로 검증 전에 결정적으로 제거한다 —
+  // 이걸 반려 사유로 두면 멀쩡한 문장이 재생성 비용만 쓰고 버려진다.
+  const gen = async (): Promise<string> =>
+    stripMarkdown(await deps.generate(prompt, { kind: unit.kind, tier }));
+
   // 생성 → 검증. 위반 시 1회 재생성, 그래도 실패면 안전 폴백.
-  let text = await deps.generate(prompt, { kind: unit.kind, tier });
+  let text = await gen();
   let guardrailFallback = false;
   let retried = false;
-  let rejectReason: "guardrail" | "remedy" | undefined;
+  let rejectReason: "guardrail" | "remedy" | "quality" | undefined;
   const firstReject = rejectionOf(text);
   if (firstReject) {
     retried = true;
     rejectReason = firstReject;
-    text = await deps.generate(prompt, { kind: unit.kind, tier });
+    text = await gen();
     if (rejectionOf(text)) {
       text = SAFE_FALLBACK[unit.kind] ?? "지금은 준비의 시기예요. 한 걸음씩 가세요.";
       guardrailFallback = true;

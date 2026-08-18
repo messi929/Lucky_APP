@@ -27,6 +27,7 @@ export {
   type RetroProbe,
 } from "./retro.js";
 export { collectMetrics, type GenerationMetrics } from "./metrics.js";
+export { stripMarkdown, qualityIssue, type QualityIssue } from "./sanitize.js";
 export { SESSION_BEATS } from "./types.js";
 export type {
   Reaction,

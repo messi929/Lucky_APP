@@ -24,7 +24,11 @@ export const generate: GenerateFn = async (prompt, meta) => {
   const model = meta.tier === "paid" ? MODELS.paid : MODELS.free;
   const res = await client.messages.create({
     model,
-    max_tokens: 320,
+    // 한국어는 토큰당 글자수가 짧아 320토큰이면 3문장 지시에서 자주 모자랐다 —
+    // "…정리하는 게"처럼 문장 중간에서 끊긴 생성물이 그대로 노출됐다
+    // (사용성 테스트 2026-08-08 G14). 길이는 프롬프트의 문장 수 지시가 잡고,
+    // 이 값은 잘리지 않을 여유로만 둔다.
+    max_tokens: 900,
     system: prompt.system,
     messages: [{ role: "user", content: prompt.user }],
   });

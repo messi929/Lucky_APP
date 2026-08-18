@@ -23,6 +23,8 @@ export interface GenerationMetrics {
   /** 반려 사유별 카운트 */
   rejectGuardrail: number;
   rejectRemedy: number;
+  /** 잘림·깨짐으로 반려된 수 — 올라가면 max_tokens·길이 지시를 손볼 신호 */
+  rejectQuality: number;
   /** 비율 (llm=0이면 0) */
   cacheHitRate: number;
   fallbackRate: number;
@@ -37,6 +39,7 @@ export function collectMetrics(units: ResolvedUnit[]): GenerationMetrics {
   const retries = llmUnits.filter((u) => u.retried).length;
   const rejectGuardrail = llmUnits.filter((u) => u.rejectReason === "guardrail").length;
   const rejectRemedy = llmUnits.filter((u) => u.rejectReason === "remedy").length;
+  const rejectQuality = llmUnits.filter((u) => u.rejectReason === "quality").length;
   const rate = (n: number): number => (llm === 0 ? 0 : Number((n / llm).toFixed(3)));
 
   return {
@@ -46,6 +49,7 @@ export function collectMetrics(units: ResolvedUnit[]): GenerationMetrics {
     retries,
     rejectGuardrail,
     rejectRemedy,
+    rejectQuality,
     cacheHitRate: rate(cacheHits),
     fallbackRate: rate(fallbacks),
     retryRate: rate(retries),

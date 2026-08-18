@@ -86,8 +86,8 @@ export interface ResolvedUnit {
   guardrailFallback?: boolean;
   /** 첫 생성이 반려되어 재생성을 시도했는지 (계측용 — 폴백과 구분) */
   retried?: boolean;
-  /** 첫 생성 반려 사유 (계측용): guardrail=가드레일 위반, remedy=색·방위 불일치 */
-  rejectReason?: "guardrail" | "remedy";
+  /** 첫 생성 반려 사유 (계측용): guardrail=가드레일 위반, remedy=색·방위 불일치, quality=잘림·깨짐 */
+  rejectReason?: "guardrail" | "remedy" | "quality";
 }
 
 /** 최종 리포트 (카드 조립 입력) */
