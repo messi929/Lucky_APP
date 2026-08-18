@@ -7,3 +7,4 @@ export * from "./saju/index.js";
 export * from "./interpret/index.js";
 export * from "./content/index.js";
 export * from "./compat/index.js";
+export * from "./text/josa.js";

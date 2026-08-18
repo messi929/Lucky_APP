@@ -8,6 +8,7 @@
  */
 
 import { findEnclosingMajorTerms } from "./astro.js";
+import { euroRo, iGa } from "../text/josa.js";
 
 const MS_PER_DAY = 86_400_000;
 /** 전환 직후로 보는 창(일) — 재방문 훅이 강해지는 구간 */
@@ -46,21 +47,6 @@ export function seasonPhase(now: Date): SeasonPhase {
   };
 }
 
-/** 한글 마지막 글자에 받침이 있는가 (조사 이/가·은/는 선택용) */
-function hasFinalConsonant(word: string): boolean {
-  const last = word.charCodeAt(word.length - 1);
-  if (last < 0xac00 || last > 0xd7a3) return false; // 한글 음절이 아니면 없음 취급
-  return (last - 0xac00) % 28 !== 0;
-}
-
-/** 으로/로 조사: 받침 없음(종성 0) 또는 ㄹ받침(종성 8)이면 '로', 그 외 받침이면 '으로'. */
-function euroRo(word: string): string {
-  const last = word.charCodeAt(word.length - 1);
-  if (last < 0xac00 || last > 0xd7a3) return "로";
-  const jong = (last - 0xac00) % 28;
-  return jong === 0 || jong === 8 ? "로" : "으로";
-}
-
 /**
  * 절기 국면 → 재방문 한 줄. justTurned > turningSoon > 평시 순.
  * 카피는 관망 언어(겁주지 않기). guardrails 통과를 전제로 authored.
@@ -69,7 +55,7 @@ export function seasonHook(phase: SeasonPhase): string {
   const cur = phase.currentTerm;
   const nxt = phase.nextTerm;
   if (phase.justTurned) {
-    const josa = hasFinalConsonant(cur) ? "이" : "가";
+    const josa = iGa(cur);
     return `${cur}${josa} 막 지났어요. 계절의 결이 바뀌는 때 — 흐름을 다시 봐드릴까요?`;
   }
   if (phase.turningSoon) {

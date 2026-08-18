@@ -10,6 +10,7 @@
 
 import { CONTROLS, GENERATES, type Element } from "../saju/constants.js";
 import { isBranchChung, isBranchSamhap, isBranchYukhap } from "../saju/ganzi.js";
+import { euroRo } from "../text/josa.js";
 import type { SajuChart } from "../saju/types.js";
 
 export type RelationType =
@@ -131,13 +132,15 @@ export function computeCompat(a: SajuChart, b: SajuChart, relation: RelationType
 /** 등급×관계 헤드라인 (골격 draft, 항상 긍정) */
 function headlineFor(grade: CompatGrade, relation: RelationType): string {
   const rel = RELATION_LABEL[relation];
+  // 조사를 하드코딩하면 받침 없는 관계명에서 어긋난다("부부으로", "친구으로").
+  const ro = euroRo(rel);
   switch (grade) {
     case "destined":
-      return `${rel}으로 이보다 좋기 어려운 조합이에요. 말 안 해도 통하는 사이.`;
+      return `${rel}${ro} 이보다 좋기 어려운 조합이에요. 말 안 해도 통하는 사이.`;
     case "goodmatch":
-      return `${rel}으로 잘 맞는 편이에요. 서로 다른 데서 오히려 배우는 사이.`;
+      return `${rel}${ro} 잘 맞는 편이에요. 서로 다른 데서 오히려 배우는 사이.`;
     case "effort":
-      return `${rel}으로 노력하면 깊어지는 사이예요. 처음보다 나중이 좋은 조합.`;
+      return `${rel}${ro} 노력하면 깊어지는 사이예요. 처음보다 나중이 좋은 조합.`;
     case "spark":
       return `불꽃 튀는 ${rel} 조합 — 싸우면서 정드는, 지루할 틈 없는 사이예요.`;
   }
