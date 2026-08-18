@@ -1,7 +1,7 @@
 import type { Mode } from "@lucky/core";
 import { buildAnswer } from "@/lib/ask";
 import { record } from "@/lib/events";
-import { getInput, isPaid } from "@/lib/store";
+import { getInput, hasFullAccess } from "@/lib/store";
 
 export const runtime = "nodejs";
 
@@ -16,7 +16,8 @@ export async function POST(req: Request): Promise<Response> {
 
   const input = await getInput(body.token);
   if (!input) return Response.json({ error: "결과를 찾을 수 없어요" }, { status: 404 });
-  if (!(await isPaid(body.token))) {
+  // 영구 결제(full_report)뿐 아니라 유효 체험 패스(season_pass)도 "전체 열람"으로 판 이상 통과시킨다.
+  if (!(await hasFullAccess(body.token))) {
     return Response.json({ error: "복채를 내면 문답이 열려요." }, { status: 402 });
   }
   const q = (body.question ?? "").trim();
