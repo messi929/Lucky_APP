@@ -1,5 +1,6 @@
 import { SKUS, type CheckoutRequest } from "@lucky/api-client";
 import { nanoid } from "nanoid";
+import { isBusinessInfoComplete } from "@/lib/business-info";
 import { record } from "@/lib/events";
 import { fulfillOrder, isTossEnabled } from "@/lib/payments";
 import { getCompat, getInput } from "@/lib/store";
@@ -23,6 +24,15 @@ export async function POST(req: Request): Promise<Response> {
 
   const sku = SKUS[body.sku];
   if (!sku) return Response.json({ error: "알 수 없는 상품" }, { status: 400 });
+  // 실결제가 열려 있는데 사업자정보가 비어 있으면 여기서 막는다.
+  // 표시 의무를 못 지킨 채 돈을 받는 상태가 되느니 결제를 안 받는 게 낫다.
+  // (mock은 돈이 움직이지 않으므로 베타 테스트 흐름은 그대로 둔다)
+  if (isTossEnabled() && !isBusinessInfoComplete()) {
+    return Response.json(
+      { error: "결제 준비 중이에요. 잠시 뒤 다시 시도해 주세요." },
+      { status: 503 },
+    );
+  }
   if (body.withdrawalConsent !== true) {
     return Response.json(
       { error: "결제 전, 열람 시 청약철회가 제한된다는 점에 동의해 주세요." },
