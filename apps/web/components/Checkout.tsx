@@ -6,8 +6,22 @@ import Link from "next/link";
 import { SKUS, type SkuId } from "@lucky/api-client";
 import { track } from "@/lib/track";
 
-/** PAY-1 결제 (§9). 청약철회 제한 고지 + 명시적 동의 체크 필수(원칙 9, 전자상거래법). */
-export function Checkout({ token, sku, giftDefault }: { token: string; sku: SkuId; giftDefault: boolean }) {
+/**
+ * PAY-1 결제 (§9). 청약철회 제한 고지 + 명시적 동의 체크 필수(원칙 9, 전자상거래법).
+ * `compat`이 오면 소유자 토큰 대신 궁합 토큰만 들고 있는다 — 토큰=열람 열쇠라
+ * 상대 화면에 실리면 리포트 전체가 열린다(사용성 테스트 2026-08-08).
+ */
+export function Checkout({
+  token,
+  compat,
+  sku,
+  giftDefault,
+}: {
+  token?: string;
+  compat?: string;
+  sku: SkuId;
+  giftDefault: boolean;
+}) {
   const router = useRouter();
   const product = SKUS[sku];
   const [consent, setConsent] = useState(false);
@@ -25,12 +39,13 @@ export function Checkout({ token, sku, giftDefault }: { token: string; sku: SkuI
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ token, sku, withdrawalConsent: consent, gift, fromMsg }),
+        body: JSON.stringify({ token, compat, sku, withdrawalConsent: consent, gift, fromMsg }),
       });
       const data = (await res.json()) as { ok?: boolean; giftToken?: string; error?: string };
       if (!res.ok || !data.ok) throw new Error(data.error ?? "결제 실패");
       if (gift && data.giftToken) setGiftUrl(`${window.location.origin}/g/${data.giftToken}`);
-      else router.push(`/r/${token}`);
+      // 궁합 결제자는 소유자 리포트로 보내지 않는다(열람 권한이 없다) — 보던 궁합 결과로 복귀.
+      else router.push(compat ? `/compat/${compat}` : `/r/${token}`);
     } catch (e) {
       setErr((e as Error).message);
       setBusy(false);

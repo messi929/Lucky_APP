@@ -2,7 +2,7 @@ import { SKUS, type CheckoutRequest } from "@lucky/api-client";
 import { nanoid } from "nanoid";
 import { record } from "@/lib/events";
 import { fulfillOrder, isTossEnabled } from "@/lib/payments";
-import { getInput } from "@/lib/store";
+import { getCompat, getInput } from "@/lib/store";
 import { storage } from "@/lib/storage";
 
 export const runtime = "nodejs";
@@ -29,14 +29,16 @@ export async function POST(req: Request): Promise<Response> {
       { status: 400 },
     );
   }
-  if (!(await getInput(body.token))) {
+  // 궁합 결제는 소유자 토큰을 클라이언트에 내리지 않는다 — 여기서 역조회한다.
+  const token = body.compat ? (await getCompat(body.compat))?.aToken : body.token;
+  if (!token || !(await getInput(token))) {
     return Response.json({ error: "결과를 찾을 수 없어요" }, { status: 404 });
   }
 
   const orderId = `ord_${nanoid(16)}`;
   const order = {
     orderId,
-    token: body.token,
+    token,
     sku: sku.id,
     amount: sku.price,
     gift: body.gift === true,

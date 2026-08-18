@@ -8,12 +8,12 @@ export const dynamic = "force-dynamic";
 export default async function PayPage({
   searchParams,
 }: {
-  searchParams: Promise<{ token?: string; sku?: string; gift?: string }>;
+  searchParams: Promise<{ token?: string; compat?: string; sku?: string; gift?: string }>;
 }) {
   const sp = await searchParams;
   const sku = (sp.sku as SkuId) ?? "full_report";
 
-  if (!sp.token || !SKUS[sku]) {
+  if ((!sp.token && !sp.compat) || !SKUS[sku]) {
     return (
       <main className="screen center">
         <p className="h-serif" style={{ fontSize: 24, marginBottom: 16 }}>결제 정보를 찾지 못했어요.</p>
@@ -27,7 +27,7 @@ export default async function PayPage({
       <h1 className="h-serif" style={{ fontSize: 24 }}>복채</h1>
       <p className="sub" style={{ fontSize: 13, marginTop: 4 }}>궁금한 만큼만 내세요</p>
       <div style={{ height: 16 }} />
-      <Checkout token={sp.token} sku={sku} giftDefault={sp.gift === "1"} />
+      <Checkout token={sp.token} compat={sp.compat} sku={sku} giftDefault={sp.gift === "1"} />
     </main>
   );
 }

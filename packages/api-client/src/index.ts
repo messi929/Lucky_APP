@@ -178,7 +178,13 @@ export const SEASON_PASS_DAYS = 7;
 
 /** 결제 요청 (mock provider). 청약철회 동의는 필수(원칙 9) */
 export interface CheckoutRequest {
-  token: string;
+  /**
+   * 리포트 토큰. 궁합 결제처럼 구매 화면이 소유자 토큰을 알아선 안 되는 경우엔 비우고
+   * `compat`을 보낸다 — 토큰은 곧 열람 열쇠라 남의 화면에 실리면 리포트 전체가 열린다.
+   */
+  token?: string;
+  /** 궁합 토큰. 서버가 소유자(A) 리포트 토큰을 역조회한다. token과 택일. */
+  compat?: string;
   sku: SkuId;
   /** 청약철회 제한 명시적 동의 (원칙 9). false면 결제 거부 */
   withdrawalConsent: boolean;
