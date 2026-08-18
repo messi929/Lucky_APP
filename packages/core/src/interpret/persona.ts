@@ -4,6 +4,12 @@
  */
 
 import { concernById, type GuardrailLevel } from "../content/concerns.js";
+import {
+  DREAM_MOOD_LABEL,
+  DREAM_RELATION_DIRECTIVE,
+  dreamRelation,
+  dreamSymbolById,
+} from "../content/dreams.js";
 import { ELEMENT_KO } from "../saju/constants.js";
 import { remedyFor } from "../content/remedies.js";
 import { toLlmContext } from "../saju/engine.js";
@@ -14,8 +20,10 @@ import type { InterpretContext, InterpretationUnit, Mode, SajuChart, Tone } from
 /**
  * 프롬프트 버전 — 화법/가드레일 변경 시 증가시켜 캐시 무효화(§4.3).
  * v3: 처방 색·방위 단일 소스 주입(B3) + 세션 비트 간 일관성 컨텍스트(B4).
+ * v4: 해몽 유닛 + 해몽 전용 가드레일 3종(태몽 단정·복권 유도·흉몽 프레임).
+ *     가드레일이 바뀌면 기존 캐시는 새 규칙으로 재검증되지 않으므로 버전을 올려 무효화한다.
  */
-export const PROMPT_VERSION = "v3";
+export const PROMPT_VERSION = "v4";
 
 /** 모델 티어 (기획서 §2.2: 무료=Haiku급, 유료=Sonnet급) */
 export const MODELS = {
@@ -100,6 +108,29 @@ function remedyDirective(chart: SajuChart): string {
   return `이 사람의 보완 오행은 ${ELEMENT_KO[r.element]}이고, 처방 색은 '${r.colors.join("·")}', 길방은 '${r.direction}'입니다. 색과 방위는 반드시 이 값만 쓰고 다른 색·방위를 지어내지 마세요.`;
 }
 
+/**
+ * 꿈 해석 지시 (DREAM-DESIGN §5). 해몽은 흉몽 프레임이 본질이라 프레임 고정이 핵심이다.
+ * "예언이 아니라 지금 마음의 신호" — 이게 해몽과 '겁주지 않는 사주' 정체성을 화해시킨다.
+ */
+function dreamInstruction(ctx: InterpretContext, chart?: SajuChart): string {
+  const d = ctx.dream;
+  if (!d) return "제시된 원국 데이터를 근거로 해석해 주세요.";
+  const symbol = dreamSymbolById(d.symbol);
+  const lines = [
+    `[꿈 해석] 사용자가 '${symbol.label}' 꿈을 꿨고, 그때 느낌은 '${DREAM_MOOD_LABEL[d.mood]}'입니다.`,
+    symbol.promptTemplate,
+  ];
+  if (chart) {
+    const f = deriveFacts(chart);
+    const rel = dreamRelation(symbol.element, f.weakestElement, f.strongestElement);
+    lines.push(DREAM_RELATION_DIRECTIVE[rel]);
+  }
+  lines.push(
+    "꿈은 예언이 아니라 '지금 마음 상태의 신호'입니다. 길흉을 단정하지 말고, 요즘 무엇이 걸려 있었는지 짚어 주는 프레임으로 2~3문장. 마지막은 오늘 해볼 만한 아주 작은 것 하나로 닫으세요.",
+  );
+  return lines.join("\n");
+}
+
 function unitInstruction(unit: InterpretationUnit, ctx: InterpretContext, chart?: SajuChart): string {
   const tone = toneOf(ctx);
   switch (unit.kind) {
@@ -125,6 +156,8 @@ function unitInstruction(unit: InterpretationUnit, ctx: InterpretContext, chart?
       return `[상담 처방] 그때까지 어떻게 지내면 좋은지 — 태도 하나 + 개운 하나를 처방으로. '~하세요' 명령형으로 담백하게. 2문장 이내.${chart ? ` ${remedyDirective(chart)}` : ""}`;
     case "caution":
       return `가장 부족한 오행을 근거로, 올 하반기 '조심할 것' 하나를 '주의 + 대처' 프레임으로 알려 주세요. 겁주지 말고 대처 위주로.${chart ? ` ${remedyDirective(chart)}` : ""}`;
+    case "dream_reading":
+      return dreamInstruction(ctx, chart);
     default:
       return "제시된 원국 데이터를 근거로 해석해 주세요.";
   }

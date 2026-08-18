@@ -342,6 +342,16 @@ export function ReportDeck({ initial }: { initial: ReportPayload }) {
             <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 4 }}>선물하기</div>
             <div className="fine" style={{ fontSize: 12 }}>생일인 그 사람에게 사주 리포트를</div>
           </a>
+          {/* 무료 재방문 훅 — 결제 유도가 아니라 다시 올 이유를 만드는 자리다(DREAM-DESIGN) */}
+          <a
+            href={`/dream/${payload.token}`}
+            onClick={() => track("dream_open", { source: "report" })}
+            className="card"
+            style={{ borderRadius: 16, padding: 18, display: "block" }}
+          >
+            <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 4 }}>어젯밤 꿈 풀어보기</div>
+            <div className="fine" style={{ fontSize: 12 }}>무료 · 당신 사주와 엮어서</div>
+          </a>
           {/* 앱 미출시 — 스토어 링크가 생기기 전까지는 수요만 계측하고, 무반응으로 두지 않는다. */}
           <button
             onClick={() => {

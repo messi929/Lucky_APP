@@ -14,8 +14,10 @@ import { cacheKeyOf } from "./cache-key.js";
 import { applyGuardrails, DISCLAIMER, DISCLAIMER_CLASSIC } from "./guardrails.js";
 import { qualityIssue, stripMarkdown } from "./sanitize.js";
 import { buildPrompt, modeOf, PROMPT_VERSION, type PriorBeat } from "./persona.js";
-import { decomposeSessionUnits, decomposeUnits, deriveFacts } from "./units.js";
+import { decomposeDreamUnits, decomposeSessionUnits, decomposeUnits, deriveFacts } from "./units.js";
+import { dreamSymbolById, type DreamMood, type DreamSymbolId } from "../content/dreams.js";
 import type {
+  DreamReading,
   InterpretContext,
   InterpretDeps,
   InterpretationUnit,
@@ -73,6 +75,27 @@ export async function interpretSession(
   return { concern, beats, lockedBeats: locked, disclaimer, promptVersion: PROMPT_VERSION };
 }
 
+/**
+ * 꿈 해석 (무료 훅, DREAM-DESIGN). 통설(정적) → 내 해석(LLM) 2장.
+ * 저장하지 않는다 — 무상태. 상징·감정은 호출부가 검증한 뒤 넘긴다.
+ */
+export async function interpretDream(
+  chart: SajuChart,
+  symbol: DreamSymbolId,
+  mood: DreamMood,
+  ctx: InterpretContext,
+  deps: InterpretDeps,
+): Promise<DreamReading> {
+  const dreamCtx: InterpretContext = { ...ctx, dream: { symbol, mood } };
+  const { units, relation } = decomposeDreamUnits(chart, symbol, mood, dreamCtx);
+  const resolved: ResolvedUnit[] = [];
+  for (const unit of units) {
+    resolved.push(await resolveUnit(unit, chart, dreamCtx, deps));
+  }
+  const disclaimer = modeOf(ctx) === "classic" ? DISCLAIMER_CLASSIC : DISCLAIMER;
+  return { symbol, mood, relation, units: resolved, disclaimer, promptVersion: PROMPT_VERSION };
+}
+
 async function resolveUnit(
   unit: InterpretationUnit,
   chart: SajuChart,
@@ -90,6 +113,9 @@ function resolveStatic(unit: InterpretationUnit): ResolvedUnit {
   if (unit.kind === "ilju_hook") {
     const h = iljuHook(unit.value);
     text = h.hook ?? `${h.ganjiHangul} 일주의 기운을 지녔어요.`; // 카피 미작성 시 폴백
+  } else if (unit.kind === "dream_classic") {
+    // 정적이라 LLM이 죽어도 이 장은 뜬다(DREAM-DESIGN §3).
+    text = dreamSymbolById(unit.value as DreamSymbolId).classic;
   } else {
     // daymaster_type
     text = dayMasterByStemIdx(Number(unit.value)).tagline;

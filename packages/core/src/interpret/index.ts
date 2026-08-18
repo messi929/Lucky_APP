@@ -1,7 +1,13 @@
 /** 해석 레이어 공개 API (packages/core/interpret, 기획서 §4) */
 
-export { interpret, interpretSession } from "./interpret.js";
-export { decomposeUnits, decomposeSessionUnits, deriveFacts, toneOf } from "./units.js";
+export { interpret, interpretSession, interpretDream } from "./interpret.js";
+export {
+  decomposeUnits,
+  decomposeSessionUnits,
+  decomposeDreamUnits,
+  deriveFacts,
+  toneOf,
+} from "./units.js";
 export { cacheKeyOf } from "./cache-key.js";
 export {
   applyGuardrails,
@@ -41,6 +47,7 @@ export type {
   ResolvedUnit,
   InterpretedReport,
   SessionReading,
+  DreamReading,
   GenerateFn,
   CacheStore,
   InterpretDeps,

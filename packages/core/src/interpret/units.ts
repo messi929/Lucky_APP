@@ -4,6 +4,13 @@
  */
 
 import { concernById, type ConcernId } from "../content/concerns.js";
+import {
+  dreamRelation,
+  dreamSymbolById,
+  type DreamMood,
+  type DreamRelation,
+  type DreamSymbolId,
+} from "../content/dreams.js";
 import { STEMS, type Element } from "../saju/constants.js";
 import {
   SESSION_BEATS,
@@ -190,4 +197,42 @@ export function decomposeSessionUnits(
   }));
 
   return { units, locked };
+}
+
+/**
+ * 꿈 유닛 분해 (DREAM-DESIGN §4). 통설(static) + 내 해석(LLM) 2장.
+ *
+ * 캐시 키 값은 `상징|감정|관계|톤`. 일간을 넣지 않는 이유가 설계의 핵심이다 —
+ * 상징 오행과 원국의 부족/과다만 대조하면 개인화가 성립하면서 키가 유한하게 묶인다.
+ * 시즌은 쓰지 않는다(꿈은 절기를 타지 않는데 키만 반기마다 무효화된다).
+ */
+export function decomposeDreamUnits(
+  chart: SajuChart,
+  symbolId: DreamSymbolId,
+  mood: DreamMood,
+  ctx: InterpretContext,
+): { units: InterpretationUnit[]; relation: DreamRelation } {
+  const f = deriveFacts(chart);
+  const tone = toneOf(ctx);
+  const symbol = dreamSymbolById(symbolId);
+  const relation = dreamRelation(symbol.element, f.weakestElement, f.strongestElement);
+
+  const units: InterpretationUnit[] = [
+    {
+      kind: "dream_classic",
+      source: "static",
+      value: symbolId,
+      seasonal: false,
+      guardrailLevel: symbol.guardrailLevel,
+    },
+    {
+      kind: "dream_reading",
+      source: "llm",
+      value: `${symbolId}|${mood}|${relation}|${tone}`,
+      seasonal: false,
+      guardrailLevel: symbol.guardrailLevel,
+    },
+  ];
+
+  return { units, relation };
 }

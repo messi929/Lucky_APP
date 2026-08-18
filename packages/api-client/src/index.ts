@@ -5,6 +5,9 @@
 
 import type {
   ConcernId,
+  DreamCategory,
+  DreamMood,
+  DreamSymbolId,
   Mode,
   Reaction,
   ResolvedUnit,
@@ -118,6 +121,27 @@ export interface SessionPayload {
   next: { concern?: ConcernId; label: string; sub: string; sku?: SkuId } | null;
   /** 마무리 주홍 "꺾는 문장" (concern별 authored, 없으면 진단문 fallback) */
   pivot: string | null;
+  disclaimer: string;
+  promptVersion: string;
+}
+
+// ── 꿈 해석 (무료 리텐션 훅, DREAM-DESIGN.md) ──
+
+/** 꿈 해석 요청. 상징 1개 + 감정 1개 — 자유 서술을 받지 않는다(캐시 전제) */
+export interface DreamRequest {
+  token: ResultToken;
+  symbol: DreamSymbolId;
+  mood: DreamMood;
+  ctx?: { mode?: Mode };
+}
+
+/** 꿈 해석 응답. 저장하지 않는다 — 무상태 */
+export interface DreamPayload {
+  token: ResultToken;
+  symbol: { id: DreamSymbolId; label: string; category: DreamCategory };
+  mood: DreamMood;
+  /** 통설(static) → 내 해석(LLM) 순 */
+  units: ResolvedUnit[];
   disclaimer: string;
   promptVersion: string;
 }

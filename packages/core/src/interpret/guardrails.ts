@@ -18,7 +18,11 @@ export type GuardrailCategory =
   | "fear" // 공포 소구
   | "spending" // 부적·굿 등 추가 지출 유도
   | "directive_trade" // L2: 매수·매도 등 확정적 매매 지시
-  | "anxiety"; // L3: 불안 자극 표현
+  | "anxiety" // L3: 불안 자극
+  // 해몽 전용 (DREAM-DESIGN §5) — 기존 규칙이 못 잡는 해몽 특유의 사고
+  | "lottery" // L2: 복권·당첨 유도 (investment는 주식·코인만 잡는다)
+  | "pregnancy" // L3: 태몽을 임신 단정으로
+  | "omen"; // L3: 흉몽 단정·조상이 부른다 류 표현
 
 interface Rule {
   category: GuardrailCategory;
@@ -37,6 +41,13 @@ const RULES: readonly Rule[] = [
   { category: "directive_trade", level: 2, pattern: /(지금|당장|반드시|꼭)\s*(사세요|파세요|매수|매도|팔)|사라|파세요|팔아라|매수하세요|매도하세요|들어가세요|빼세요/ },
   // L3 민감 (자녀운·건강)
   { category: "anxiety", level: 3, pattern: /이대로(면|는|라면)\s*(어렵|힘들|안\s*됩|안\s*돼|망)|가망(이)?\s*없|끝장|위험(합니다|해요|하다|한\s*해)|큰일\s*(납|나|입)|답이\s*없/ },
+  // ── 해몽 전용 (DREAM-DESIGN §5) ──
+  // 돼지·금·돈 상징에서 가장 흔한 사고. investment 규칙은 주식·코인만 잡는다.
+  { category: "lottery", level: 2, pattern: /복권|로또|당첨|일확천금|한탕|대박\s*(나|납|날)/ },
+  // 태몽을 임신 단정으로 말하면 의료·개인사 단정이다. 실제와 어긋나면 그 자체로 상처.
+  { category: "pregnancy", level: 3, pattern: /임신(하게|할\s*것|한다|이에요|입니다|하셨|했)|태몽(이에요|입니다|이니|이라|이 맞)|아이가\s*(생기|들어서)|아기가\s*들어/ },
+  // fear 규칙이 못 잡는 해몽 특유의 표현.
+  { category: "omen", level: 3, pattern: /흉몽(이|입니다|이에요)|불길한\s*(꿈|징조)|나쁜\s*꿈이니|조상이\s*(부르|노하)|따라\s*가(게\s*된|려\s*한)/ },
 ];
 
 export interface Violation {

@@ -5,6 +5,10 @@
 
 import { describe, expect, it } from "vitest";
 import {
+  applyGuardrails,
+  cacheKeyOf,
+  computeSaju,
+  decomposeDreamUnits,
   DREAM_RELATION_DIRECTIVE,
   DREAM_SYMBOLS,
   dreamRelation,
@@ -141,5 +145,82 @@ describe("오행 다리 — 개인화 축", () => {
     for (const r of ["lack", "excess", "neutral"] as const) {
       expect(DREAM_RELATION_DIRECTIVE[r].length).toBeGreaterThan(10);
     }
+  });
+});
+
+describe("꿈 유닛 분해 · 캐시 키 (DREAM-DESIGN §2)", () => {
+  const chart = computeSaju({
+    birthDate: "1990-03-15",
+    birthTime: "14:20",
+    gender: "male",
+    calendarType: "solar",
+    birthRegion: "SEOUL",
+    unknownTime: false,
+  });
+  const ctx = { season: "2026H2" } as const;
+
+  it("통설(static) + 내 해석(LLM) 2장", () => {
+    const { units } = decomposeDreamUnits(chart, "snake", "fear", ctx);
+    expect(units.map((u) => u.kind)).toEqual(["dream_classic", "dream_reading"]);
+    expect(units[0]!.source).toBe("static");
+    expect(units[1]!.source).toBe("llm");
+  });
+
+  it("통설은 캐시 대상이 아니다 (정적 콘텐츠 직참조)", () => {
+    const { units } = decomposeDreamUnits(chart, "snake", "fear", ctx);
+    expect(cacheKeyOf(units[0]!, ctx, "v4")).toBeNull();
+  });
+
+  it("캐시 키는 상징·감정·관계·톤만 담는다 — 일간은 들어가지 않는다", () => {
+    const { units } = decomposeDreamUnits(chart, "snake", "fear", ctx);
+    const key = cacheKeyOf(units[1]!, ctx, "v4")!;
+    expect(key.startsWith("dream_reading:snake|fear|")).toBe(true);
+    // 일간 한자가 키에 새어 들어가면 조합이 10배가 된다
+    expect(key).not.toContain(chart.saju.dayStem);
+  });
+
+  it("시즌 축을 쓰지 않는다 (절기를 타지 않는데 반기마다 무효화되면 손해)", () => {
+    const { units } = decomposeDreamUnits(chart, "snake", "fear", ctx);
+    const a = cacheKeyOf(units[1]!, { season: "2026H1" }, "v4");
+    const b = cacheKeyOf(units[1]!, { season: "2026H2" }, "v4");
+    expect(a).toBe(b);
+  });
+
+  it("감정이 다르면 키가 갈린다 (같은 상징도 해석이 달라야 한다)", () => {
+    const fear = decomposeDreamUnits(chart, "snake", "fear", ctx).units[1]!;
+    const relief = decomposeDreamUnits(chart, "snake", "relief", ctx).units[1]!;
+    expect(cacheKeyOf(fear, ctx, "v4")).not.toBe(cacheKeyOf(relief, ctx, "v4"));
+  });
+
+  it("가드레일 단계는 상징에서 상속한다", () => {
+    const { units } = decomposeDreamUnits(chart, "pregnant", "odd", ctx);
+    expect(units[1]!.guardrailLevel).toBe(3);
+  });
+});
+
+describe("해몽 전용 가드레일 (DREAM-DESIGN §5)", () => {
+  it("태몽을 임신 단정으로 말하면 L3에서 걸린다", () => {
+    expect(applyGuardrails("이건 태몽이에요. 곧 아이가 생기겠네요.", 3).ok).toBe(false);
+    expect(applyGuardrails("임신하게 될 거예요.", 3).ok).toBe(false);
+  });
+
+  it("복권·당첨 유도는 L2에서 걸린다 (investment 규칙은 주식·코인만 잡는다)", () => {
+    expect(applyGuardrails("돼지꿈이니 복권을 사보세요.", 2).ok).toBe(false);
+    expect(applyGuardrails("당첨 운이 들어옵니다.", 2).ok).toBe(false);
+  });
+
+  it("흉몽 단정·조상이 부른다 류는 L3에서 걸린다", () => {
+    expect(applyGuardrails("흉몽입니다. 조심하세요.", 3).ok).toBe(false);
+    expect(applyGuardrails("조상이 부르는 꿈이에요.", 3).ok).toBe(false);
+  });
+
+  it("정상 해몽 문장은 통과한다", () => {
+    const ok = "요즘 마음이 무거우셨나 봐요. 꿈은 그 무게를 비추는 거울일 뿐이에요.";
+    expect(applyGuardrails(ok, 3).ok).toBe(true);
+  });
+
+  it("겁을 걷어내는 문장은 막지 않는다 (흉몽으로 치지 않았다는 설명)", () => {
+    const ok = "놀라셨겠지만 옛 해석에서도 흉몽으로 치지 않았어요.";
+    expect(applyGuardrails(ok, 3).ok).toBe(true);
   });
 });

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { StoredPerson } from "@lucky/api-client";
 import { listPeople } from "@/lib/people";
+import { track } from "@/lib/track";
 
 /**
  * 홈 "이어보기" — 기기 명부(localStorage)에 남은 지난 리포트로 돌아가는 길.
@@ -26,6 +27,15 @@ export function ResumeCard() {
       <div style={{ height: 8 }} />
       <Link href={`/r/${mine.token}`} className="btn ghost">
         이어보기 — 지난 리포트
+      </Link>
+      {/* 재방문 훅(무료). 사주는 1회성이지만 꿈은 주 단위로 생긴다 — DREAM-DESIGN §0 */}
+      <div style={{ height: 8 }} />
+      <Link
+        href={`/dream/${mine.token}`}
+        onClick={() => track("dream_open", { source: "home" })}
+        className="btn ghost"
+      >
+        어젯밤 꿈 풀어보기 — 무료
       </Link>
     </>
   );

@@ -4,6 +4,7 @@
  */
 
 import type { ConcernId, GuardrailLevel } from "../content/concerns.js";
+import type { DreamMood, DreamRelation, DreamSymbolId } from "../content/dreams.js";
 import type { SajuChart } from "../saju/types.js";
 
 /** 반응 체크 원탭 (소름/반/글쎄요) — 후반 화법 톤 분기 */
@@ -26,6 +27,11 @@ export interface InterpretContext {
   season: string;
   /** 유료 여부 (모델 티어·조심할것 상세 해제) */
   paid?: boolean;
+  /**
+   * 꿈 해석 입력 (dream_* 유닛에서만). 상징 1개 + 감정 1개.
+   * 자유 서술을 받지 않는 이유는 DREAM-DESIGN §0 — 값이 무한해지면 캐시가 무너진다.
+   */
+  dream?: { symbol: DreamSymbolId; mood: DreamMood };
 }
 
 /** 해석 유닛 종류 (§4.2) */
@@ -41,7 +47,10 @@ export type UnitKind =
   | "session_diagnosis" // 진단: 고민에 대한 핵심 단정 (무료 티저)
   | "session_reason" // 근거: 원국의 특정 글자로 진단을 뒷받침
   | "session_timing" // 시기: 흐름이 열리고 닫히는 때 (관망 언어)
-  | "session_remedy"; // 처방: 그때까지의 태도 + 개운 한 가지
+  | "session_remedy" // 처방: 그때까지의 태도 + 개운 한 가지
+  // 꿈 해석 (무료 리텐션 훅, DREAM-DESIGN.md) — 통설은 정적, 내 해석만 LLM
+  | "dream_classic" // 전통 통설 한 줄 (static)
+  | "dream_reading"; // 상징 × 내 원국 해석 (LLM)
 
 /** 상담 세션 비트 순서 (진단→근거→시기→처방) */
 export type SessionBeatKind =
@@ -104,6 +113,21 @@ export interface SessionReading {
   beats: ResolvedUnit[];
   /** 미해제 비트 (무료 시 근거·시기·처방). 결제 유도용 */
   lockedBeats: SessionBeatKind[];
+  disclaimer: string;
+  promptVersion: string;
+}
+
+/**
+ * 꿈 해석 결과 (무료 훅). 상징 1개 × 감정 1개 × 내 원국.
+ * 저장하지 않는다 — 무상태(DREAM-DESIGN §4).
+ */
+export interface DreamReading {
+  symbol: DreamSymbolId;
+  mood: DreamMood;
+  /** 상징 오행 × 원국(최약/최강) 관계 — 해석 방향이자 캐시 키 축 */
+  relation: DreamRelation;
+  /** 통설(static) → 내 해석(LLM) 순 */
+  units: ResolvedUnit[];
   disclaimer: string;
   promptVersion: string;
 }
