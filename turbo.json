@@ -3,7 +3,17 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**"]
+      // .next/** 누락 시 캐시 적중 빌드가 산출물을 복원하지 않아 Vercel이
+      // routes-manifest.json을 찾지 못하고 배포가 실패한다. cache/**는 제외(용량·무의미).
+      "outputs": ["dist/**", ".next/**", "!.next/cache/**"],
+      // 빌드 해시에 포함 — 선언하지 않으면 Vercel 환경변수가 빌드에 전달되지 않는다.
+      "env": [
+        "ANTHROPIC_API_KEY",
+        "SUPABASE_URL",
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "CRON_SECRET",
+        "BETA_SECRET"
+      ]
     },
     "typecheck": {
       "dependsOn": ["^build"]
