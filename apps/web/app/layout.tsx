@@ -29,7 +29,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
+  // maximumScale 고정 금지 — 확대가 막히면 고령·저시력 사용자가 본문을 읽을 방법이 없다(WCAG 1.4.4).
   themeColor: "#F4EFE3",
 };
 
