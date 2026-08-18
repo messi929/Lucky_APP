@@ -10,6 +10,7 @@ import { ElementChart } from "./ElementChart";
 import { ModeToggle } from "./ModeToggle";
 import { RetroCard } from "./RetroCard";
 import { Dots, InkCircle, Stamp } from "./ui";
+import { shareLink } from "@/lib/share";
 import { track } from "@/lib/track";
 
 const REACTIONS: { key: Reaction; label: string }[] = [
@@ -305,7 +306,19 @@ export function ReportDeck({ initial }: { initial: ReportPayload }) {
         <div className="grow" />
         <div className="fine" style={{ letterSpacing: "0.1em" }}>팔자 리포트 · paljareport.com</div>
         <div style={{ height: 10 }} />
-        <button onClick={() => { track("share_click", { channel: "kakao", kind: "remedy" }); }} className="btn kakao">카카오톡으로 공유</button>
+        <button
+          onClick={() => {
+            track("share_click", { channel: "kakao", kind: "remedy" });
+            void shareLink(
+              `${window.location.origin}/r/${payload.token}`,
+              "내 사주 카드 리포트",
+              "리포트 링크를 복사했어요. 붙여넣어 공유해 보세요!",
+            );
+          }}
+          className="btn kakao"
+        >
+          카카오톡으로 공유
+        </button>
         <div style={{ height: 6 }} />
         <a href={`/api/og/story/${payload.token}`} target="_blank" rel="noreferrer" onClick={() => track("share_click", { channel: "save" })} className="btn ink">이미지 저장 · 스토리용 9:16</a>
       </section>
@@ -329,9 +342,17 @@ export function ReportDeck({ initial }: { initial: ReportPayload }) {
             <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 4 }}>선물하기</div>
             <div className="fine" style={{ fontSize: 12 }}>생일인 그 사람에게 사주 리포트를</div>
           </a>
-          <button onClick={() => track("app_install_click")} className="card" style={{ borderRadius: 16, padding: 18, textAlign: "left" }}>
+          {/* 앱 미출시 — 스토어 링크가 생기기 전까지는 수요만 계측하고, 무반응으로 두지 않는다. */}
+          <button
+            onClick={() => {
+              track("app_install_click");
+              alert("앱은 아직 준비 중이에요. 나오면 이 리포트 화면에서 가장 먼저 알려드릴게요.");
+            }}
+            className="card"
+            style={{ borderRadius: 16, padding: 18, textAlign: "left" }}
+          >
             <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 4 }}>매일 아침, 오늘의 한 줄</div>
-            <div className="fine" style={{ fontSize: 12 }}>앱에서 푸시로 받아보기</div>
+            <div className="fine" style={{ fontSize: 12 }}>앱에서 푸시로 받아보기 · 출시 준비 중</div>
           </button>
         </div>
         <div style={{ height: 16 }} />
