@@ -124,7 +124,7 @@ export interface SessionPayload {
 
 // ── 수익화 SKU (기획서 §7.4, §9) ──
 export type SkuId =
-  | "full_report" // 복채 풀 리포트 + 문답 1회
+  | "full_report" // 전체 리포트 + 모든 상담 주제 + 문답
   | "compat_detail" // 궁합 상세
   | "timing" // 이직/결혼 타이밍
   | "child_fortune" // 자녀운(수능/취업/혼사)
@@ -146,12 +146,35 @@ export interface Sku {
   /** 목적+기간 입력 필요(택일) */
   requiresPeriod?: boolean;
   note?: string;
+  /**
+   * 구매 전 필수 고지 (전자상거래법). 기간제·무갱신 상품은 기간과 갱신 여부를
+   * 결제 화면에서 밝혀야 한다 — 7일 패스는 구매 전후 어디에도 안내가 0글자였다
+   * (사용성 테스트 2026-08-08).
+   */
+  notice?: string;
 }
 
+/** 체험 패스 유효 기간(일). 무갱신·기간제 — 이 값 한 곳에서 조정. SKUS 라벨·고지가 참조하므로 위에 둔다. */
+export const SEASON_PASS_DAYS = 7;
+
 export const SKUS: Record<SkuId, Sku> = {
-  full_report: { id: "full_report", label: "복채 풀 리포트 + 문답 1회", price: 3900, tier: "paid" },
+  // 라벨은 실제 해금 범위와 일치해야 한다. isPaid는 모든 상담 주제와 문답을 함께 여는데
+  // 이전 라벨은 "풀 리포트 + 문답 1회"라 화면마다 문구가 갈렸다(사용성 테스트 2026-08-08).
+  full_report: {
+    id: "full_report",
+    label: "전체 리포트 + 모든 상담 + 문답",
+    price: 3900,
+    tier: "paid",
+    notice: "한 번 결제로 계속 열람 · 추가 청구 없음",
+  },
   session_unlock: { id: "session_unlock", label: "이 주제 상담 (시기·처방)", price: 990, tier: "paid" },
-  season_pass: { id: "season_pass", label: "7일 체험 패스 · 전체 열람", price: 1900, tier: "paid" },
+  season_pass: {
+    id: "season_pass",
+    label: `${SEASON_PASS_DAYS}일 체험 패스 · 전체 열람`,
+    price: 1900,
+    tier: "paid",
+    notice: `결제일로부터 ${SEASON_PASS_DAYS}일간 전체 열람 · 자동갱신 없음 · 기간이 끝나면 자동 종료되고 추가 청구가 없습니다.`,
+  },
   compat_detail: { id: "compat_detail", label: "궁합 상세 + 기념일 카드", price: 2900, tier: "paid" },
   timing: { id: "timing", label: "이직/결혼 타이밍", price: 6900, tier: "paid" },
   child_fortune: {
@@ -172,9 +195,6 @@ export const SKUS: Record<SkuId, Sku> = {
   exam: { id: "exam", label: "시험운", price: 4900, tier: "paid" },
   newyear: { id: "newyear", label: "신년 대운 리포트", price: 9900, tier: "paid" },
 };
-
-/** 체험 패스 유효 기간(일). 무갱신·기간제 — 이 값 한 곳에서 조정. */
-export const SEASON_PASS_DAYS = 7;
 
 /** 결제 요청 (mock provider). 청약철회 동의는 필수(원칙 9) */
 export interface CheckoutRequest {

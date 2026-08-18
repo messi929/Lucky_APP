@@ -6,6 +6,9 @@ import Link from "next/link";
 import { SKUS, type SkuId } from "@lucky/api-client";
 import { track } from "@/lib/track";
 
+/** 비교 문구의 기준 주제 수. 990원 × 이 값이 3,900원을 넘는 최소 개수(4). */
+const COMPARE_TOPICS = 4;
+
 /**
  * PAY-1 결제 (§9). 청약철회 제한 고지 + 명시적 동의 체크 필수(원칙 9, 전자상거래법).
  * `compat`이 오면 소유자 토큰 대신 궁합 토큰만 들고 있는다 — 토큰=열람 열쇠라
@@ -75,6 +78,35 @@ export function Checkout({
           {product.note && <div style={{ fontSize: 11, color: "#CCC5BB" }}>{product.note}</div>}
         </div>
         <div style={{ fontFamily: "var(--serif)", fontWeight: 900, color: "var(--paper)" }}>{product.price.toLocaleString()}원</div>
+      </div>
+
+      {/* 기간제·무갱신 고지 (전자상거래법). 7일 패스는 구매 전후 안내가 0글자였다. */}
+      {product.notice && (
+        <p style={{ fontSize: 12, color: "var(--ink-70)", lineHeight: 1.55, marginTop: 10 }}>{product.notice}</p>
+      )}
+
+      {/* 세 가격의 관계를 여기서 처음 보여 준다. 990원 구매자 2명 모두 이 비교 때문이었는데
+          정작 이 문구는 세션 페이월에만 있었다(사용성 테스트 2026-08-08). */}
+      <div className="card" style={{ marginTop: 12 }}>
+        <div style={{ fontSize: 11, letterSpacing: "0.2em", color: "var(--ink-40)", marginBottom: 8 }}>세 가지 중에서</div>
+        {(["session_unlock", "season_pass", "full_report"] as SkuId[]).map((id) => {
+          const s = SKUS[id];
+          const here = s.id === sku;
+          return (
+            <div
+              key={id}
+              style={{ display: "flex", gap: 8, alignItems: "baseline", padding: "5px 0", fontSize: 13, color: here ? "var(--ink)" : "var(--ink-70)", fontWeight: here ? 700 : 400 }}
+            >
+              <span style={{ flex: 1 }}>{here ? "지금 보는 것 · " : ""}{s.label}</span>
+              <span style={{ fontFamily: "var(--serif)", fontWeight: 700 }}>{s.price.toLocaleString()}원</span>
+            </div>
+          );
+        })}
+        <div style={{ height: 6 }} />
+        <p style={{ fontSize: 12, color: "var(--ink-70)", lineHeight: 1.55 }}>
+          주제 {COMPARE_TOPICS}개를 따로 열면 {(SKUS.session_unlock.price * COMPARE_TOPICS).toLocaleString()}원 —{" "}
+          <b style={{ color: "var(--ink)" }}>전체 {SKUS.full_report.price.toLocaleString()}원</b>이 더 쌉니다.
+        </p>
       </div>
 
       <label className="hstack" style={{ marginTop: 16, cursor: "pointer" }}>
