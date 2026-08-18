@@ -1,5 +1,5 @@
 import type { SessionRequest } from "@lucky/api-client";
-import { collectMetrics, type InterpretContext } from "@lucky/core";
+import { collectMetrics, isConcernId, type InterpretContext } from "@lucky/core";
 import { getInput, isSessionUnlocked } from "@/lib/store";
 import { buildSession } from "@/lib/session";
 import { currentSeason } from "@/lib/age";
@@ -22,6 +22,11 @@ export async function POST(req: Request): Promise<Response> {
 
   if (!body.token || !body.concern) {
     return Response.json({ error: "토큰과 고민이 필요해요" }, { status: 400 });
+  }
+  // concern은 URL 경로에서 그대로 온다. 검증 없이 내려보내면 카탈로그에 없는 값이
+  // concernById에서 undefined가 되고 guardrailLevel 접근에서 500 원시 에러가 노출된다.
+  if (!isConcernId(body.concern)) {
+    return Response.json({ error: "아직 준비 중인 주제예요." }, { status: 404 });
   }
 
   const input = await getInput(body.token);

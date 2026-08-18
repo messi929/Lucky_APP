@@ -9,6 +9,7 @@ import {
   computeTaekil,
   concernById,
   concernsForAge,
+  isConcernId,
   dayGanziIndex,
   isBranchChung,
   isBranchSamhap,
@@ -100,5 +101,22 @@ describe("고민 카탈로그 연령 적응 (§7)", () => {
     expect(concernById("child_fortune").verticalSku).toBe("child_fortune");
     expect(concernById("taekil").verticalSku).toBe("taekil");
     expect(concernById("exam").verticalSku).toBe("exam");
+  });
+});
+
+describe("고민 id 검증 (isConcernId)", () => {
+  it("카탈로그에 있는 id만 통과", () => {
+    expect(isConcernId("health_year")).toBe(true);
+    expect(isConcernId("taekil")).toBe(true);
+    // URL로 흔히 들어오는 축약형. 통과시키면 concernById가 undefined를 반환해
+    // guardrailLevel 접근에서 터지고 사용자에게 원시 에러가 노출된다.
+    expect(isConcernId("health")).toBe(false);
+    expect(isConcernId("")).toBe(false);
+  });
+
+  it("Object.prototype 상속 키를 고민으로 오인하지 않는다", () => {
+    expect(isConcernId("toString")).toBe(false);
+    expect(isConcernId("constructor")).toBe(false);
+    expect(isConcernId("__proto__")).toBe(false);
   });
 });

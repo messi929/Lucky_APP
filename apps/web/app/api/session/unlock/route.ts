@@ -1,3 +1,4 @@
+import { isConcernId } from "@lucky/core";
 import { getInput, unlockConcern } from "@/lib/store";
 
 export const runtime = "nodejs";
@@ -17,6 +18,10 @@ export async function POST(req: Request): Promise<Response> {
 
   if (!body.token || !body.concern) {
     return Response.json({ error: "토큰과 고민이 필요해요" }, { status: 400 });
+  }
+  // 카탈로그에 없는 주제를 해금해 두면 원장에 유령 행이 남는다(결제만 되고 열 화면이 없음).
+  if (!isConcernId(body.concern)) {
+    return Response.json({ error: "아직 준비 중인 주제예요." }, { status: 404 });
   }
   if (body.withdrawalConsent !== true) {
     return Response.json({ error: "청약철회 제한 동의가 필요해요 (원칙 9)" }, { status: 400 });

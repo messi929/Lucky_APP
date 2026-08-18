@@ -194,6 +194,16 @@ export function concernById(id: ConcernId): Concern {
 }
 
 /**
+ * 문자열이 유효한 고민 id인지. URL 경로(/s/{token}/{concern})가 그대로 들어오므로
+ * 소비처는 이걸 통과시킨 뒤에만 concernById를 부를 것 — 검증 없이 부르면 undefined가
+ * 반환돼 `guardrailLevel` 접근에서 터지고, 사용자에겐 원시 에러가 노출된다
+ * (사용성 테스트 2026-08-08: /s/{token}/health).
+ */
+export function isConcernId(v: string): v is ConcernId {
+  return Object.prototype.hasOwnProperty.call(CONCERNS, v);
+}
+
+/**
  * 상담 허브 타일 표현 (낙관 한자 마커 + 한 줄 부제). 웹·모바일 허브 공용 단일 소스(원칙 8).
  * 한자는 디자인 §불변 4 낙관 세트에서: 答(고민) 緣(궁합) 運(처방) 福(선물) 問(질문) 吉(택일).
  */
