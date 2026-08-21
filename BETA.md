@@ -86,8 +86,12 @@ eas build --profile preview --platform ios       # ad-hoc, 기기 UDID 등록 �
 
 ### 배포 전 체크
 - `apps/mobile/eas.json`의 `EXPO_PUBLIC_API_BASE`를 실제 백엔드 URL로 (현재 `web-eight-olive-98.vercel.app`).
-- `apps/mobile/app.json`의 `associatedDomains`(`applinks:paljareport.com`)·Android `intentFilters` host를
-  실제 도메인으로 교체해야 초대·선물 링크가 앱을 연다.
+- `app.json`의 `associatedDomains`·Android `intentFilters` host는 백엔드 호스트로 맞춰 뒀다.
+  자체 도메인을 붙이면 여기도 함께 바꿀 것. Android App Links `autoVerify`는 `false`인데,
+  `/.well-known/assetlinks.json`(EAS가 발급한 서명 지문 필요)이 아직 없어서다 —
+  검증이 실패해 링크가 죽느니 선택 다이얼로그가 낫다. 도메인 확정 후 파일을 올리고 `true`로.
+- 폰트는 굵기별 서브패스로 require한다(`app/_layout.tsx`). 패키지 루트에서 import하면
+  안 쓰는 굵기 8종이 통째로 실려 번들이 161MB가 된다.
 
 ---
 
