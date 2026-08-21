@@ -28,6 +28,7 @@ export default function BusinessPage() {
           {([
             ["서비스명", BUSINESS_INFO.serviceName],
             ["운영 형태", "무료 베타 (유료 판매 없음)"],
+            ["문의·개인정보", BUSINESS_INFO.email],
             ["호스팅", BUSINESS_INFO.hosting],
           ] as [string, string][]).map(([k, v]) => (
             <div key={k} className="flex gap-3 text-sm">

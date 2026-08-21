@@ -1,6 +1,9 @@
 /**
  * 사업자정보 (전자상거래법 표시 의무, 기획서 §9, §12.2).
- * ⚠️ 값은 플레이스홀더 — 런칭 전 실제 사업자 정보로 교체하고 통신판매업 신고번호 기입.
+ * ⚠️ TODO 항목은 플레이스홀더 — 런칭 전 실제 사업자 정보로 교체하고 통신판매업 신고번호 기입.
+ *
+ * email만 먼저 실값이다. 열람·삭제 요청 창구는 사업자 여부와 무관하게 있어야
+ * /privacy 5조가 문구가 아닌 실제 권리가 되므로, 판매 개시를 기다리지 않는다.
  */
 export const BUSINESS_INFO = {
   serviceName: "팔자 리포트",
@@ -9,7 +12,7 @@ export const BUSINESS_INFO = {
   address: "TODO 사업장 주소",
   bizRegNo: "TODO 사업자등록번호",
   mailOrderNo: "TODO 통신판매업 신고번호", // 미신고 시 런칭 불가(§12.2 체크리스트)
-  email: "TODO help@paljareport.com",
+  email: "wjswogus929@gmail.com",
   hosting: "Vercel Inc.",
   paymentProvider: "토스페이먼츠(주)",
 } as const;
