@@ -7,23 +7,36 @@
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#F5F0E8"
+    },
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.palja.report",
+      "config": {
+        "usesNonExemptEncryption": false
+      },
       "associatedDomains": [
-        "applinks:paljareport.com"
+        "applinks:web-eight-olive-98.vercel.app"
       ]
     },
     "android": {
       "package": "com.palja.report",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#F5F0E8"
+      },
       "intentFilters": [
         {
           "action": "VIEW",
-          "autoVerify": true,
+          "autoVerify": false,
           "data": [
             {
               "scheme": "https",
-              "host": "paljareport.com",
+              "host": "web-eight-olive-98.vercel.app",
               "pathPrefix": "/r"
             }
           ],
@@ -33,6 +46,9 @@
           ]
         }
       ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
     },
     "plugins": [
       "expo-router",

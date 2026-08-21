@@ -4,6 +4,7 @@ import { ScrollView, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Btn, Card, Stamp } from "@/components/ui";
 import { ask } from "@/lib/api";
+import { isCommerceEnabled } from "@/lib/commerce";
 import { loadToken } from "@/lib/storage";
 import { color, FONT } from "@/lib/theme";
 
@@ -51,8 +52,10 @@ export default function Ask() {
         <Card><Text style={{ fontFamily: FONT.sans, fontSize: 15, color: color.ink, lineHeight: 26 }}>{answer}</Text></Card>
       ) : locked ? (
         <Card style={{ alignItems: "center" }}>
-          <Text style={{ fontFamily: FONT.serifBold, fontSize: 16, color: color.ink, marginBottom: 8 }}>구독하면 문답이 열려요</Text>
-          <Btn label="구독 보기" variant="ink" onPress={() => router.push("/subscribe")} />
+          <Text style={{ fontFamily: FONT.serifBold, fontSize: 16, color: color.ink, marginBottom: 8 }}>
+            {isCommerceEnabled() ? "구독하면 문답이 열려요" : "지금은 문답을 열 수 없어요"}
+          </Text>
+          {isCommerceEnabled() && <Btn label="구독 보기" variant="ink" onPress={() => router.push("/subscribe")} />}
         </Card>
       ) : (
         <>

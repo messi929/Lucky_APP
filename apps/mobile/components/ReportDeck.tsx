@@ -15,6 +15,7 @@ import {
   type NativeSyntheticEvent,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { isCommerceEnabled } from "@/lib/commerce";
 import { API_BASE, color, FONT } from "@/lib/theme";
 import { fetchReport } from "@/lib/api";
 import { BrushIntro } from "./BrushIntro";
@@ -306,7 +307,9 @@ export function ReportDeck({ initial }: { initial: ReportPayload }) {
           <Btn label="복채 문답 · 하나 묻기" variant="ink" onPress={() => router.push("/ask")} />
           <Btn label="궁합 · 가족 보기" variant="ghost" style={st.wideGhost} onPress={() => router.push("/compat/new")} />
           <Btn label="택일 · 좋은 날 찾기" variant="ghost" style={st.wideGhost} onPress={() => router.push("/vertical/taekil")} />
-          <Btn label="구독 — 매일 아침 + 문답 + 궁합" variant="ghost" style={st.wideGhost} onPress={() => router.push("/subscribe")} />
+          {payload.commerce && (
+            <Btn label="구독 — 매일 아침 + 문답 + 궁합" variant="ghost" style={st.wideGhost} onPress={() => router.push("/subscribe")} />
+          )}
         </View>
         <Text style={[st.fine, { marginTop: 16 }]}>{payload.disclaimer}</Text>
       </>

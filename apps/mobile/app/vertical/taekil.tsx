@@ -5,6 +5,7 @@ import { Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Btn, Card } from "@/components/ui";
 import { taekil } from "@/lib/api";
+import { isCommerceEnabled } from "@/lib/commerce";
 import { loadToken } from "@/lib/storage";
 import { color, FONT } from "@/lib/theme";
 
@@ -48,7 +49,7 @@ export default function Taekil() {
       setResult(await taekil(token, purpose, ymd(start), ymd(end)));
     } catch (e) {
       const msg = (e as Error).message;
-      if (msg.includes("결제")) router.push("/subscribe");
+      if (msg.includes("결제") && isCommerceEnabled()) router.push("/subscribe");
       else setErr(msg);
     } finally {
       setBusy(false);

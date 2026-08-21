@@ -16,6 +16,8 @@ import { BETA_COOKIE, BETA_HEADER, verifyBetaCredential } from "@/lib/beta";
 const PUBLIC_PREFIXES = [
   "/beta",
   "/api/beta",
+  // 운영 스위치 — 앱이 코드 입력 전에도 읽어야 하고, 자격이 필요한 정보가 없다
+  "/api/config",
   // 수신자 공유 화면
   "/r",
   "/c",

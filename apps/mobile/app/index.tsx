@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Btn, Card, Stamp } from "@/components/ui";
+import { useCommerceEnabled } from "@/lib/commerce";
 import { loadBeta, loadBirth, loadToken } from "@/lib/storage";
 import { color, FONT } from "@/lib/theme";
 
@@ -13,6 +14,7 @@ import { color, FONT } from "@/lib/theme";
  */
 export default function Home() {
   const insets = useSafeAreaInsets();
+  const commerce = useCommerceEnabled();
   const [ready, setReady] = useState(false);
   const [daily, setDaily] = useState<{ line: string; ganji: string } | null>(null);
   const [token, setToken] = useState<string | null>(null);
@@ -72,9 +74,11 @@ export default function Home() {
       <Link href="/onboarding/push" asChild>
         <Card style={s.linkCard}><Text style={s.linkTitle}>매일 아침 8시, 오늘의 한 줄 받기</Text></Card>
       </Link>
-      <Link href="/subscribe" asChild>
-        <Card style={[s.linkCard, { borderColor: color.gold }]}><Text style={[s.linkTitle, { color: color.gold }]}>구독 — 매일 아침 + 문답 3회/월 · 4,900원</Text></Card>
-      </Link>
+      {commerce && (
+        <Link href="/subscribe" asChild>
+          <Card style={[s.linkCard, { borderColor: color.gold }]}><Text style={[s.linkTitle, { color: color.gold }]}>구독 — 매일 아침 + 문답 3회/월 · 4,900원</Text></Card>
+        </Link>
+      )}
       <Link href="/vault" asChild>
         <Card style={s.linkCard}><Text style={s.linkTitle}>내 보관함</Text></Card>
       </Link>

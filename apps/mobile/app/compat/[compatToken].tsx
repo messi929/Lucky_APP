@@ -5,6 +5,7 @@ import { ActivityIndicator, ScrollView, Share, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Btn, InkCircle } from "@/components/ui";
 import { compatResult } from "@/lib/api";
+import { useCommerceEnabled } from "@/lib/commerce";
 import { API_BASE, color, FONT } from "@/lib/theme";
 
 /** REL-3 궁합 결과 (§8.1). 등급 4종, 나쁜 결과 없음 프레임. */
@@ -12,6 +13,7 @@ export default function CompatResultScreen() {
   // me = 방금 궁합을 푼 B의 결과 토큰(있으면). 재입력 없이 자기 리포트로 역유입.
   const { compatToken, me } = useLocalSearchParams<{ compatToken: string; me?: string }>();
   const insets = useSafeAreaInsets();
+  const commerce = useCommerceEnabled();
   const [data, setData] = useState<{ result: CompatResult; aHanja: string; bHanja: string } | null>(null);
   const [err, setErr] = useState("");
 
@@ -53,7 +55,7 @@ export default function CompatResultScreen() {
           variant="kakao"
           onPress={() => Share.share({ message: `우리 궁합 나왔어요 ${API_BASE}/compat/${compatToken}` })}
         />
-        <Btn label="관계 상세 보기 (구독)" variant="ghost" onPress={() => router.push("/subscribe")} />
+        {commerce && <Btn label="관계 상세 보기 (구독)" variant="ghost" onPress={() => router.push("/subscribe")} />}
       </View>
     </ScrollView>
   );
