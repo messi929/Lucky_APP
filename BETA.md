@@ -92,6 +92,11 @@ eas build --profile preview --platform ios       # ad-hoc, 기기 UDID 등록 �
   검증이 실패해 링크가 죽느니 선택 다이얼로그가 낫다. 도메인 확정 후 파일을 올리고 `true`로.
 - 폰트는 굵기별 서브패스로 require한다(`app/_layout.tsx`). 패키지 루트에서 import하면
   안 쓰는 굵기 8종이 통째로 실려 번들이 161MB가 된다.
+- EAS는 `pnpm install`만 하고 워크스페이스를 빌드하지 않는다. `@lucky/core`는 `dist`를
+  main으로 내보내므로(상대 import에 `.js` 확장자를 써서 Metro가 소스를 직접 못 읽는다)
+  번들 전에 빌드돼야 한다 → `apps/mobile/package.json`의 `eas-build-post-install`.
+  `ui`·`api-client`는 소스를 직접 노출해 해당 없음.
+- 빌드 이미지 Node는 `eas.json`의 `base.node`로 22.x 고정. 기본값 20은 pnpm 11을 못 돌린다.
 
 ---
 
