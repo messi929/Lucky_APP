@@ -58,6 +58,13 @@
     ],
     "experiments": {
       "typedRoutes": false
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "75c17f42-6ee1-4761-9332-616056f2e4da"
+      }
+    },
+    "owner": "jeonjaehyeon"
   }
 }
